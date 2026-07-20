@@ -73,7 +73,7 @@ export default function Dashboard() {
               return (
                 <Link
                   key={p.id}
-                  href="/projects"
+                  href={`/projects/${p.id}`}
                   className="block px-5 py-3.5 transition hover:bg-ink-50"
                 >
                   <div className="flex items-center justify-between gap-3">

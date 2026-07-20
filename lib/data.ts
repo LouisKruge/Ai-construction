@@ -350,6 +350,289 @@ export const workOrders: WorkOrder[] = [
   { id: "WO-0890", item: "PV tracker piles (batch 1)", project: "PRJ-0163", factory: "Vulcan Works 1", qty: "2 400 units", due: "2026-10-02", progress: 0, status: "Queued" },
 ];
 
+// ─── Design & BIM ───────────────────────────────────────────────────────────
+
+export interface DesignPackage {
+  id: string;
+  name: string;
+  project: string;
+  stage: "Concept" | "Schematic" | "Detailed" | "Tender" | "IFC";
+  architect: string;
+  drawings: number;
+  approved: number;
+  status: "In progress" | "Client review" | "Approved" | "On hold";
+}
+
+export const designPackages: DesignPackage[] = [
+  { id: "DP-201", name: "Tower façade & envelope", project: "PRJ-0142", stage: "IFC", architect: "Studio Mokoena", drawings: 84, approved: 79, status: "In progress" },
+  { id: "DP-207", name: "Theatre wing — clinical layouts", project: "PRJ-0170", stage: "Detailed", architect: "HealthArc Partners", drawings: 46, approved: 46, status: "Approved" },
+  { id: "DP-212", name: "Logistics park — warehouse shells", project: "PRJ-0158", stage: "Schematic", architect: "Bastion Design", drawings: 22, approved: 9, status: "Client review" },
+  { id: "DP-215", name: "Data centre campus masterplan", project: "PRJ-0177", stage: "Concept", architect: "Studio Mokoena", drawings: 14, approved: 3, status: "In progress" },
+];
+
+export interface ClashSet {
+  id: string;
+  project: string;
+  disciplines: string;
+  zone: string;
+  clashes: number;
+  resolved: number;
+  status: "Open" | "In review" | "Resolved";
+}
+
+export const clashSets: ClashSet[] = [
+  { id: "CL-118", project: "PRJ-0142", disciplines: "Structure × HVAC", zone: "L18 plantroom", clashes: 31, resolved: 22, status: "Open" },
+  { id: "CL-121", project: "PRJ-0170", disciplines: "Medical gas × Electrical", zone: "Theatre 3–5 ceiling void", clashes: 12, resolved: 12, status: "Resolved" },
+  { id: "CL-124", project: "PRJ-0142", disciplines: "Façade × Structure", zone: "L24 transfer", clashes: 7, resolved: 2, status: "In review" },
+  { id: "CL-126", project: "PRJ-0158", disciplines: "Civils × Wet services", zone: "Platform 4 services corridor", clashes: 19, resolved: 4, status: "Open" },
+];
+
+// ─── Quality ────────────────────────────────────────────────────────────────
+
+export interface Defect {
+  id: string;
+  project: string;
+  location: string;
+  trade: string;
+  description: string;
+  severity: "Critical" | "Major" | "Minor";
+  status: "Open" | "In progress" | "Ready for reinspection" | "Closed";
+  due: string;
+}
+
+export const defects: Defect[] = [
+  { id: "DEF-1204", project: "PRJ-0142", location: "L12 core lobby", trade: "Concrete", description: "Honeycombing to shear wall face, 1.2m² patch", severity: "Major", status: "In progress", due: "2026-07-28" },
+  { id: "DEF-1211", project: "PRJ-0142", location: "L09 riser 2", trade: "Fire protection", description: "Missing firestopping at service penetrations", severity: "Critical", status: "Open", due: "2026-07-23" },
+  { id: "DEF-1198", project: "PRJ-0151", location: "Pier 4", trade: "Formwork", description: "Surface finish outside F3 tolerance", severity: "Minor", status: "Ready for reinspection", due: "2026-07-22" },
+  { id: "DEF-1187", project: "PRJ-0170", location: "Pod B3 (factory)", trade: "Joinery", description: "Door frame out of plumb 6mm", severity: "Minor", status: "Closed", due: "2026-07-15" },
+  { id: "DEF-1215", project: "PRJ-0142", location: "L15 curtain wall", trade: "Glazing", description: "Failed water penetration test, unit CW-15-08", severity: "Major", status: "Open", due: "2026-07-30" },
+];
+
+export interface Inspection {
+  id: string;
+  project: string;
+  type: string;
+  date: string;
+  inspector: string;
+  result: "Passed" | "Failed" | "Scheduled";
+  notes: string;
+}
+
+export const inspections: Inspection[] = [
+  { id: "INSP-887", project: "PRJ-0142", type: "Concrete pre-pour — L26 core", date: "2026-07-21", inspector: "Site QA + Structural Agent checklist", result: "Scheduled", notes: "Rebar scan uploaded, awaiting cover verification" },
+  { id: "INSP-882", project: "PRJ-0151", type: "Post-tension stressing record", date: "2026-07-18", inspector: "PT specialist", result: "Passed", notes: "Elongations within 4% of theoretical" },
+  { id: "INSP-879", project: "PRJ-0170", type: "Modular pod factory QA — batch 2", date: "2026-07-17", inspector: "ModuFab QC", result: "Passed", notes: "2 minor snags logged to DEF register" },
+  { id: "INSP-874", project: "PRJ-0142", type: "Curtain wall water test — L15", date: "2026-07-15", inspector: "Façade consultant", result: "Failed", notes: "Unit CW-15-08 leak at transom joint — DEF-1215 raised" },
+];
+
+// ─── Safety ─────────────────────────────────────────────────────────────────
+
+export interface SafetyItem {
+  id: string;
+  project: string;
+  type: "Near miss" | "First aid" | "Observation" | "Permit" | "Toolbox talk";
+  description: string;
+  date: string;
+  status: "Open" | "Closed" | "Active";
+}
+
+export const safetyItems: SafetyItem[] = [
+  { id: "SAF-3312", project: "PRJ-0142", type: "Near miss", description: "Unsecured scaffold tube fell 3 levels within exclusion zone", date: "2026-07-17", status: "Open" },
+  { id: "SAF-3309", project: "PRJ-0151", type: "Permit", description: "Hot works — deck welding, bays 12–14", date: "2026-07-20", status: "Active" },
+  { id: "SAF-3305", project: "PRJ-0142", type: "Toolbox talk", description: "Working at height refresher — 142 attendees", date: "2026-07-16", status: "Closed" },
+  { id: "SAF-3301", project: "PRJ-0163", type: "Observation", description: "Dust suppression inadequate on haul road during NW wind", date: "2026-07-14", status: "Closed" },
+  { id: "SAF-3298", project: "PRJ-0151", type: "First aid", description: "Laceration to hand — glove policy reinforced", date: "2026-07-11", status: "Closed" },
+];
+
+// ─── Documents, RFIs, variations ────────────────────────────────────────────
+
+export interface Doc {
+  id: string;
+  name: string;
+  project: string;
+  type: string;
+  version: string;
+  size: string;
+  uploaded: string;
+  indexed: "Indexed" | "Processing" | "Queued";
+}
+
+export const documents: Doc[] = [
+  { id: "DOC-9931", name: "Main contract — JBCC 6.2 signed", project: "PRJ-0142", type: "Contract", version: "1.0", size: "8.4 MB", uploaded: "2026-07-18", indexed: "Indexed" },
+  { id: "DOC-9928", name: "Geotech report — platform 4 addendum", project: "PRJ-0158", type: "Report", version: "2.1", size: "22.7 MB", uploaded: "2026-07-17", indexed: "Indexed" },
+  { id: "DOC-9925", name: "S-1802 transfer slab Rev D", project: "PRJ-0142", type: "Drawing", version: "D", size: "4.1 MB", uploaded: "2026-07-16", indexed: "Indexed" },
+  { id: "DOC-9922", name: "PV module datasheets — 640W bifacial", project: "PRJ-0163", type: "Specification", version: "1.0", size: "12.3 MB", uploaded: "2026-07-15", indexed: "Processing" },
+  { id: "DOC-9919", name: "Drone survey — week 29 orthomosaic", project: "PRJ-0151", type: "Survey", version: "—", size: "1.9 GB", uploaded: "2026-07-19", indexed: "Queued" },
+];
+
+export interface Rfi {
+  id: string;
+  project: string;
+  subject: string;
+  raisedBy: string;
+  ballInCourt: string;
+  due: string;
+  status: "Open" | "Answered" | "Overdue";
+}
+
+export const rfis: Rfi[] = [
+  { id: "RFI-0611", project: "PRJ-0142", subject: "Transfer slab penetration ≤300mm — sleeve detail", raisedBy: "Site engineer", ballInCourt: "Structural engineer", due: "2026-07-22", status: "Open" },
+  { id: "RFI-0608", project: "PRJ-0158", subject: "Attenuation pond liner spec vs geotech addendum", raisedBy: "Contractor", ballInCourt: "Civil engineer", due: "2026-07-18", status: "Overdue" },
+  { id: "RFI-0604", project: "PRJ-0170", subject: "Theatre pendant fixing to pod ceiling structure", raisedBy: "ModuFab", ballInCourt: "Architect", due: "2026-07-21", status: "Open" },
+  { id: "RFI-0601", project: "PRJ-0142", subject: "Curtain wall bracket cast-in tolerance", raisedBy: "Meridian Façades", ballInCourt: "—", due: "2026-07-14", status: "Answered" },
+];
+
+export interface Variation {
+  id: string;
+  project: string;
+  description: string;
+  value: number;
+  status: "Draft" | "Submitted" | "Approved" | "Rejected";
+}
+
+export const variations: Variation[] = [
+  { id: "VO-088", project: "PRJ-0142", description: "Client upgrade — lobby stone finishes", value: 6_400_000, status: "Approved" },
+  { id: "VO-091", project: "PRJ-0158", description: "Stormwater redesign — additional attenuation", value: 11_200_000, status: "Submitted" },
+  { id: "VO-092", project: "PRJ-0151", description: "Rock excavation over-break, pier 6", value: 3_850_000, status: "Draft" },
+  { id: "VO-086", project: "PRJ-0170", description: "Additional isolation room conversion", value: 8_900_000, status: "Approved" },
+];
+
+// ─── Sales & clients ────────────────────────────────────────────────────────
+
+export interface Opportunity {
+  id: string;
+  name: string;
+  client: string;
+  sector: string;
+  value: number;
+  stage: "Qualifying" | "Proposal" | "Tender submitted" | "Negotiation" | "Won" | "Lost";
+  winProbability: number;
+  closes: string;
+}
+
+export const pipeline: Opportunity[] = [
+  { id: "OPP-441", name: "Waterfall City Data Centre Campus", client: "Nexus Digital Infrastructure", sector: "Data Centres", value: 2_100_000_000, stage: "Tender submitted", winProbability: 0.35, closes: "2026-09-15" },
+  { id: "OPP-438", name: "Umhlanga Ridge residential towers", client: "Coastal Living Group", sector: "Residential", value: 640_000_000, stage: "Proposal", winProbability: 0.45, closes: "2026-08-29" },
+  { id: "OPP-433", name: "Gqeberha wind farm BOP", client: "Meridian Energy Partners", sector: "Renewable Energy", value: 890_000_000, stage: "Negotiation", winProbability: 0.7, closes: "2026-08-08" },
+  { id: "OPP-429", name: "Lanseria warehouse & cold store", client: "Atterfield Developments", sector: "Industrial", value: 210_000_000, stage: "Qualifying", winProbability: 0.2, closes: "2026-10-02" },
+  { id: "OPP-425", name: "Mthatha regional hospital upgrade", client: "Eastern Cape DOH", sector: "Healthcare", value: 470_000_000, stage: "Tender submitted", winProbability: 0.4, closes: "2026-09-01" },
+];
+
+export interface Client {
+  name: string;
+  contact: string;
+  activeProjects: number;
+  contracted: number;
+  satisfaction: number; // 0-5
+  lastReport: string;
+  pendingApprovals: number;
+}
+
+export const clients: Client[] = [
+  { name: "Redstone Property Group", contact: "N. Dlamini — Development Director", activeProjects: 1, contracted: 486_000_000, satisfaction: 3.9, lastReport: "2026-07-14", pendingApprovals: 2 },
+  { name: "SANRAL", contact: "T. van Rooyen — Project Director", activeProjects: 1, contracted: 912_000_000, satisfaction: 4.6, lastReport: "2026-07-15", pendingApprovals: 0 },
+  { name: "Meridian Energy Partners", contact: "S. Naidoo — Head of Delivery", activeProjects: 1, contracted: 1_640_000_000, satisfaction: 4.4, lastReport: "2026-07-11", pendingApprovals: 1 },
+  { name: "Atterfield Developments", contact: "J. Botha — Portfolio Manager", activeProjects: 1, contracted: 238_000_000, satisfaction: 3.4, lastReport: "2026-07-08", pendingApprovals: 3 },
+  { name: "Western Cape DOI", contact: "L. Petersen — Programme Lead", activeProjects: 1, contracted: 356_000_000, satisfaction: 4.7, lastReport: "2026-07-16", pendingApprovals: 0 },
+];
+
+// ─── Digital twin ───────────────────────────────────────────────────────────
+
+export interface Sensor {
+  id: string;
+  project: string;
+  type: string;
+  location: string;
+  value: string;
+  status: "Normal" | "Warning" | "Alert" | "Offline";
+  updated: string;
+}
+
+export const sensors: Sensor[] = [
+  { id: "SEN-118", project: "PRJ-0142", type: "Concrete maturity", location: "L25 core pour C-2261", value: "31.4 MPa (est.)", status: "Normal", updated: "4 min ago" },
+  { id: "SEN-104", project: "PRJ-0142", type: "Crane wind speed", location: "TC-2 jib", value: "38 km/h gusting", status: "Warning", updated: "1 min ago" },
+  { id: "SEN-097", project: "PRJ-0151", type: "Deck deflection", location: "Span 3 midpoint", value: "12.1 mm", status: "Normal", updated: "9 min ago" },
+  { id: "SEN-121", project: "PRJ-0163", type: "Pyranometer", location: "Met station 1", value: "6.2 kWh/m²/day", status: "Normal", updated: "2 min ago" },
+  { id: "SEN-089", project: "PRJ-0170", type: "Pod transport shock", location: "Batch 1 in transit", value: "0.8 g peak", status: "Normal", updated: "16 min ago" },
+  { id: "SEN-092", project: "PRJ-0158", type: "Groundwater level", location: "Borehole BH-07", value: "-2.4 m (rising)", status: "Alert", updated: "22 min ago" },
+];
+
+export interface TwinCapture {
+  project: string;
+  kind: string;
+  date: string;
+  coverage: string;
+  delta: string;
+}
+
+export const twinCaptures: TwinCapture[] = [
+  { project: "PRJ-0142", kind: "Laser scan — L10–L14", date: "2026-07-18", coverage: "98%", delta: "+2.1% vs plan, 3 deviations flagged" },
+  { project: "PRJ-0151", kind: "Drone orthomosaic — full site", date: "2026-07-19", coverage: "100%", delta: "Earthworks 96% of design surface" },
+  { project: "PRJ-0163", kind: "Drone survey — array field A", date: "2026-07-16", coverage: "100%", delta: "Pile layout matches design" },
+  { project: "PRJ-0170", kind: "360° capture — theatre corridor", date: "2026-07-17", coverage: "91%", delta: "No deviations" },
+];
+
+// ─── Marketplace ────────────────────────────────────────────────────────────
+
+export interface MarketListing {
+  name: string;
+  kind: "Supplier" | "Manufacturer" | "Equipment" | "Professional";
+  category: string;
+  region: string;
+  rating: number;
+  capacity: string;
+  verified: boolean;
+}
+
+export const marketplace: MarketListing[] = [
+  { name: "Vulcan Steel Fabricators", kind: "Manufacturer", category: "Structural steel · 900 t/month", region: "Gauteng", rating: 4.7, capacity: "34% available Q4", verified: true },
+  { name: "Karoo Precast", kind: "Manufacturer", category: "Precast concrete elements", region: "Western Cape", rating: 4.5, capacity: "Available from Sep", verified: true },
+  { name: "Highveld Crane Hire", kind: "Equipment", category: "Tower & mobile cranes to 350 t", region: "National", rating: 4.3, capacity: "2× luffing units free Aug", verified: true },
+  { name: "Cape Formwork Systems", kind: "Supplier", category: "Formwork & scaffolding", region: "Western Cape", rating: 4.2, capacity: "Immediate", verified: true },
+  { name: "Sithole & Partners", kind: "Professional", category: "Structural engineering — ECSA reg.", region: "KwaZulu-Natal", rating: 4.8, capacity: "120 h/month from Aug", verified: true },
+  { name: "AeroSite Surveys", kind: "Professional", category: "Drone survey & photogrammetry", region: "National", rating: 4.6, capacity: "Immediate", verified: false },
+  { name: "Ubuntu Electrical Wholesale", kind: "Supplier", category: "MV/LV switchgear & cable", region: "Gauteng", rating: 4.1, capacity: "Immediate", verified: true },
+  { name: "ModuFab Epping", kind: "Manufacturer", category: "Volumetric modular units", region: "Western Cape", rating: 4.4, capacity: "Booked to Nov", verified: true },
+];
+
+// ─── Analytics benchmarks ───────────────────────────────────────────────────
+
+export interface Benchmark {
+  metric: string;
+  company: string;
+  industry: string;
+  better: boolean;
+}
+
+export const benchmarks: Benchmark[] = [
+  { metric: "Schedule adherence (portfolio)", company: "93%", industry: "81%", better: true },
+  { metric: "Procurement savings vs budget", company: "4.2%", industry: "1.1%", better: true },
+  { metric: "Rework as % of contract value", company: "2.3%", industry: "5.0%", better: true },
+  { metric: "RFI response time (median)", company: "2.1 days", industry: "7.4 days", better: true },
+  { metric: "Defects at practical completion / R100m", company: "38", industry: "112", better: true },
+  { metric: "Forecast-at-completion accuracy", company: "±3.8%", industry: "±11%", better: true },
+  { metric: "Margin erosion tender → final", company: "-0.8 pts", industry: "-3.2 pts", better: true },
+];
+
+// ─── Team ───────────────────────────────────────────────────────────────────
+
+export interface TeamMember {
+  name: string;
+  role: string;
+  email: string;
+  access: "Admin" | "Editor" | "Viewer";
+  lastActive: string;
+}
+
+export const team: TeamMember[] = [
+  { name: "Louis Kruge", role: "Chief Executive", email: "louis@meridiancg.example", access: "Admin", lastActive: "Now" },
+  { name: "Stefan Kruger", role: "Commercial Director", email: "stefan@meridiancg.example", access: "Admin", lastActive: "2 h ago" },
+  { name: "A. Mahlangu", role: "Engineering Director", email: "a.mahlangu@meridiancg.example", access: "Editor", lastActive: "35 min ago" },
+  { name: "P. Jacobs", role: "Construction Director", email: "p.jacobs@meridiancg.example", access: "Editor", lastActive: "1 h ago" },
+  { name: "R. Singh", role: "Procurement Manager", email: "r.singh@meridiancg.example", access: "Editor", lastActive: "12 min ago" },
+  { name: "M. van Wyk", role: "Client — Redstone", email: "m.vanwyk@redstone.example", access: "Viewer", lastActive: "Yesterday" },
+];
+
 export const fmt = {
   zar(n: number): string {
     if (n >= 1_000_000_000) return `R${(n / 1_000_000_000).toFixed(2)}bn`;

@@ -31,11 +31,23 @@ app/
     layout.tsx             # App shell: sidebar + top bar
     dashboard/             # Command Center — KPIs, agent insights, project health
     projects/              # Portfolio table
+    projects/[id]/         # Project drill-down: programme, engineering,
+                           #   procurement, quality, safety, finance, docs, twin
+    design/                # Design packages, BIM clash detection
     engineering/           # Drawing review queue, compliance checks
-    procurement/           # RFQs, benchmarks, supplier performance
-    construction/          # Programme, critical path, site metrics
     manufacturing/         # Work orders, factory intelligence
+    construction/          # Programme, critical path, site metrics
+    quality/               # Defect register, inspections
+    safety/                # Incidents, permits, toolbox talks
+    procurement/           # RFQs, benchmarks, supplier performance
     finance/               # Cashflow forecast, margins
+    sales/                 # Tender pipeline, win probability
+    clients/               # Client success, reports, approvals
+    documents/             # Document repository, RFIs, variations
+    twin/                  # Digital twin: sensors, reality capture
+    marketplace/           # Suppliers, manufacturers, equipment, professionals
+    analytics/             # Industry benchmarks from the intelligence network
+    settings/              # Team access, AI governance
 components/                # Sidebar + shared UI primitives
 lib/data.ts                # Mock single-source-of-truth data layer
 ```

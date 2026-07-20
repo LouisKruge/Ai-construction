@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { fmt, projects } from "@/lib/data";
 import { Badge, Card, PageHeader, Progress, Table } from "@/components/ui";
 
@@ -20,7 +21,9 @@ export default function ProjectsPage() {
           {projects.map((p) => (
             <tr key={p.id} className="transition hover:bg-ink-50">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{p.name}</div>
+                <Link href={`/projects/${p.id}`} className="font-medium text-ink-900 hover:text-signal-600">
+                  {p.name}
+                </Link>
                 <div className="mt-0.5 text-xs text-ink-400">
                   {p.id} · {p.client} · {p.location}
                 </div>
