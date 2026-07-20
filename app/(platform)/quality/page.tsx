@@ -11,7 +11,7 @@ export default function QualityPage() {
         title="Quality Studio"
         subtitle="Defects, inspections, snagging, and compliance certificates."
         actions={
-          <button className="rounded-md bg-signal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-signal-600">
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             + Raise defect
           </button>
         }
@@ -25,30 +25,30 @@ export default function QualityPage() {
       </div>
 
       <Card className="mt-6">
-        <CardHeader title="Defect register" right={<span className="text-xs text-ink-400">Auto-raised from failed inspections and site capture</span>} />
+        <CardHeader title="Defect register" right={<span className="text-xs text-fg-faint">Auto-raised from failed inspections and site capture</span>} />
         <Table headers={["Defect", "Project", "Location · Trade", "Severity", "Due", "Status"]}>
           {defects.map((d) => (
-            <tr key={d.id} className="transition hover:bg-ink-50">
+            <tr key={d.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{d.description}</div>
-                <div className="mt-0.5 text-xs text-ink-400">{d.id}</div>
+                <div className="font-medium text-fg">{d.description}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{d.id}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">
-                <Link href={`/projects/${d.project}`} className="hover:text-signal-600">
+              <td className="px-5 py-4 text-fg-muted">
+                <Link href={`/projects/${d.project}`} className="hover:text-accent">
                   {projects.find((p) => p.id === d.project)?.name}
                 </Link>
               </td>
-              <td className="px-5 py-4 text-ink-600">{d.location} · {d.trade}</td>
+              <td className="px-5 py-4 text-fg-muted">{d.location} · {d.trade}</td>
               <td className="px-5 py-4">
                 <span
                   className={`text-sm font-medium ${
-                    d.severity === "Critical" ? "text-critical" : d.severity === "Major" ? "text-caution" : "text-ink-400"
+                    d.severity === "Critical" ? "text-critical" : d.severity === "Major" ? "text-caution" : "text-fg-faint"
                   }`}
                 >
                   {d.severity}
                 </span>
               </td>
-              <td className="px-5 py-4 text-ink-600">{d.due}</td>
+              <td className="px-5 py-4 text-fg-muted">{d.due}</td>
               <td className="px-5 py-4">
                 <Badge
                   label={
@@ -71,18 +71,18 @@ export default function QualityPage() {
         <CardHeader title="Inspections" />
         <Table headers={["Inspection", "Project", "Date", "Inspector", "Result"]}>
           {inspections.map((i) => (
-            <tr key={i.id} className="transition hover:bg-ink-50">
+            <tr key={i.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{i.type}</div>
-                <div className="mt-0.5 text-xs text-ink-400">{i.id} · {i.notes}</div>
+                <div className="font-medium text-fg">{i.type}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{i.id} · {i.notes}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">
-                <Link href={`/projects/${i.project}`} className="hover:text-signal-600">
+              <td className="px-5 py-4 text-fg-muted">
+                <Link href={`/projects/${i.project}`} className="hover:text-accent">
                   {projects.find((p) => p.id === i.project)?.name}
                 </Link>
               </td>
-              <td className="px-5 py-4 text-ink-600">{i.date}</td>
-              <td className="px-5 py-4 text-ink-600">{i.inspector}</td>
+              <td className="px-5 py-4 text-fg-muted">{i.date}</td>
+              <td className="px-5 py-4 text-fg-muted">{i.inspector}</td>
               <td className="px-5 py-4">
                 <Badge label={i.result === "Failed" ? "Issues found" : i.result === "Scheduled" ? "Queued" : "Passed"} />
               </td>

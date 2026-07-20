@@ -8,7 +8,7 @@ export default function ProcurementPage() {
         title="Procurement Studio"
         subtitle="RFQs, supplier intelligence, and benchmark-driven awards."
         actions={
-          <button className="rounded-md bg-signal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-signal-600">
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             + New RFQ
           </button>
         }
@@ -22,25 +22,25 @@ export default function ProcurementPage() {
       </div>
 
       <Card className="mt-6">
-        <CardHeader title="Requests for quotation" right={<span className="text-xs text-ink-400">Lowest quote vs platform benchmark</span>} />
+        <CardHeader title="Requests for quotation" right={<span className="text-xs text-fg-faint">Lowest quote vs platform benchmark</span>} />
         <Table headers={["Package", "Project", "Quotes", "Lowest", "Benchmark", "Closes", "Status"]}>
           {rfqs.map((r) => {
             const overBenchmark = r.lowest > 0 && r.lowest > r.benchmark;
             return (
-              <tr key={r.id} className="transition hover:bg-ink-50">
+              <tr key={r.id} className="transition hover:bg-raise">
                 <td className="px-5 py-4">
-                  <div className="font-medium text-ink-900">{r.package}</div>
-                  <div className="mt-0.5 text-xs text-ink-400">{r.id}</div>
+                  <div className="font-medium text-fg">{r.package}</div>
+                  <div className="mt-0.5 text-xs text-fg-faint">{r.id}</div>
                 </td>
-                <td className="px-5 py-4 text-ink-600">
+                <td className="px-5 py-4 text-fg-muted">
                   {projects.find((p) => p.id === r.project)?.name}
                 </td>
-                <td className="px-5 py-4 text-ink-600">{r.quotes}</td>
-                <td className={`px-5 py-4 font-medium ${overBenchmark ? "text-critical" : "text-ink-900"}`}>
+                <td className="px-5 py-4 text-fg-muted">{r.quotes}</td>
+                <td className={`px-5 py-4 font-medium ${overBenchmark ? "text-critical" : "text-fg"}`}>
                   {r.lowest ? fmt.zar(r.lowest) : "—"}
                 </td>
-                <td className="px-5 py-4 text-ink-400">{fmt.zar(r.benchmark)}</td>
-                <td className="px-5 py-4 text-ink-600">{r.closes}</td>
+                <td className="px-5 py-4 text-fg-faint">{fmt.zar(r.benchmark)}</td>
+                <td className="px-5 py-4 text-fg-muted">{r.closes}</td>
                 <td className="px-5 py-4">
                   <Badge label={r.status} />
                 </td>
@@ -51,12 +51,12 @@ export default function ProcurementPage() {
       </Card>
 
       <Card className="mt-6">
-        <CardHeader title="Supplier performance" right={<span className="text-xs text-ink-400">Scored from delivery and quality history</span>} />
+        <CardHeader title="Supplier performance" right={<span className="text-xs text-fg-faint">Scored from delivery and quality history</span>} />
         <Table headers={["Supplier", "Category", "On-time", "Quality", "Active orders", "Spend YTD"]}>
           {suppliers.map((s) => (
-            <tr key={s.name} className="transition hover:bg-ink-50">
-              <td className="px-5 py-4 font-medium text-ink-900">{s.name}</td>
-              <td className="px-5 py-4 text-ink-600">{s.category}</td>
+            <tr key={s.name} className="transition hover:bg-raise">
+              <td className="px-5 py-4 font-medium text-fg">{s.name}</td>
+              <td className="px-5 py-4 text-fg-muted">{s.category}</td>
               <td className="px-5 py-4">
                 <span
                   className={`font-medium ${
@@ -66,9 +66,9 @@ export default function ProcurementPage() {
                   {fmt.pct(s.onTimeRate)}
                 </span>
               </td>
-              <td className="px-5 py-4 text-ink-600">{s.qualityScore.toFixed(1)} / 5</td>
-              <td className="px-5 py-4 text-ink-600">{s.activeOrders}</td>
-              <td className="px-5 py-4 text-ink-900">{fmt.zar(s.spendYtd)}</td>
+              <td className="px-5 py-4 text-fg-muted">{s.qualityScore.toFixed(1)} / 5</td>
+              <td className="px-5 py-4 text-fg-muted">{s.activeOrders}</td>
+              <td className="px-5 py-4 text-fg">{fmt.zar(s.spendYtd)}</td>
             </tr>
           ))}
         </Table>

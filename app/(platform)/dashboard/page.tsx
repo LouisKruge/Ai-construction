@@ -11,7 +11,7 @@ export default function Dashboard() {
   const severityTone = {
     critical: "border-l-critical",
     caution: "border-l-caution",
-    info: "border-l-signal-500",
+    info: "border-l-accent",
   } as const;
 
   return (
@@ -33,24 +33,24 @@ export default function Dashboard() {
         <Card className="lg:col-span-3">
           <CardHeader
             title="Agent insights"
-            right={<span className="text-xs text-ink-400">4 open · ranked by impact</span>}
+            right={<span className="text-xs text-fg-faint">4 open · ranked by impact</span>}
           />
-          <div className="divide-y divide-ink-100">
+          <div className="divide-y divide-edge">
             {insights.map((i) => (
               <div key={i.id} className={`border-l-2 px-5 py-4 ${severityTone[i.severity]}`}>
                 <div className="flex items-center justify-between gap-4">
-                  <div className="text-sm font-medium text-ink-900">{i.title}</div>
-                  <span className="whitespace-nowrap text-xs text-ink-400">
+                  <div className="text-sm font-medium text-fg">{i.title}</div>
+                  <span className="whitespace-nowrap text-xs text-fg-faint">
                     {Math.round(i.confidence * 100)}% conf.
                   </span>
                 </div>
-                <div className="mt-1 text-xs text-ink-400">
+                <div className="mt-1 text-xs text-fg-faint">
                   {i.agent} · {projects.find((p) => p.id === i.project)?.name}
                 </div>
-                <p className="mt-2 text-sm text-ink-600">{i.detail}</p>
+                <p className="mt-2 text-sm text-fg-muted">{i.detail}</p>
                 <p className="mt-2 text-sm">
-                  <span className="font-medium text-signal-600">Recommended: </span>
-                  <span className="text-ink-600">{i.action}</span>
+                  <span className="font-medium text-accent">Recommended: </span>
+                  <span className="text-fg-muted">{i.action}</span>
                 </p>
               </div>
             ))}
@@ -62,22 +62,22 @@ export default function Dashboard() {
           <CardHeader
             title="Project health"
             right={
-              <Link href="/projects" className="text-xs font-medium text-signal-600 hover:underline">
+              <Link href="/projects" className="text-xs font-medium text-accent hover:underline">
                 View all
               </Link>
             }
           />
-          <div className="divide-y divide-ink-100">
+          <div className="divide-y divide-edge">
             {projects.map((p) => {
               const behind = p.plannedProgress - p.progress;
               return (
                 <Link
                   key={p.id}
                   href={`/projects/${p.id}`}
-                  className="block px-5 py-3.5 transition hover:bg-ink-50"
+                  className="block px-5 py-3.5 transition hover:bg-raise"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="truncate text-sm font-medium text-ink-900">{p.name}</div>
+                    <div className="truncate text-sm font-medium text-fg">{p.name}</div>
                     <Badge label={p.status} />
                   </div>
                   <div className="mt-2 flex items-center gap-3">
@@ -85,7 +85,7 @@ export default function Dashboard() {
                       value={p.progress}
                       tone={behind > 5 ? "critical" : behind > 2 ? "caution" : "neutral"}
                     />
-                    <span className="whitespace-nowrap text-xs text-ink-400">
+                    <span className="whitespace-nowrap text-xs text-fg-faint">
                       {p.progress}% / {p.plannedProgress}%
                     </span>
                   </div>
@@ -93,7 +93,7 @@ export default function Dashboard() {
               );
             })}
           </div>
-          <div className="border-t border-ink-100 px-5 py-3 text-xs text-ink-400">
+          <div className="border-t border-edge px-5 py-3 text-xs text-fg-faint">
             Actual vs planned progress. Colour indicates schedule variance.
           </div>
         </Card>

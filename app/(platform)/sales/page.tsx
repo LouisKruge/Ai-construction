@@ -19,7 +19,7 @@ export default function SalesPage() {
         title="Sales Studio"
         subtitle="Tender discovery, pipeline, and proposal intelligence."
         actions={
-          <button className="rounded-md bg-signal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-signal-600">
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             + New opportunity
           </button>
         }
@@ -35,28 +35,28 @@ export default function SalesPage() {
       <Card className="mt-6">
         <CardHeader
           title="Pipeline"
-          right={<span className="text-xs text-ink-400">Win probability estimated from bid history and competitor intelligence</span>}
+          right={<span className="text-xs text-fg-faint">Win probability estimated from bid history and competitor intelligence</span>}
         />
         <Table headers={["Opportunity", "Client", "Sector", "Value", "Win prob.", "Closes", "Stage"]}>
           {pipeline.map((o) => (
-            <tr key={o.id} className="transition hover:bg-ink-50">
+            <tr key={o.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{o.name}</div>
-                <div className="mt-0.5 text-xs text-ink-400">{o.id}</div>
+                <div className="font-medium text-fg">{o.name}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{o.id}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">{o.client}</td>
-              <td className="px-5 py-4 text-ink-600">{o.sector}</td>
-              <td className="px-5 py-4 text-ink-900">{fmt.zar(o.value)}</td>
+              <td className="px-5 py-4 text-fg-muted">{o.client}</td>
+              <td className="px-5 py-4 text-fg-muted">{o.sector}</td>
+              <td className="px-5 py-4 text-fg">{fmt.zar(o.value)}</td>
               <td className="px-5 py-4">
                 <span
                   className={`font-medium ${
-                    o.winProbability >= 0.6 ? "text-positive" : o.winProbability >= 0.35 ? "text-caution" : "text-ink-400"
+                    o.winProbability >= 0.6 ? "text-positive" : o.winProbability >= 0.35 ? "text-caution" : "text-fg-faint"
                   }`}
                 >
                   {fmt.pct(o.winProbability)}
                 </span>
               </td>
-              <td className="px-5 py-4 text-ink-600">{o.closes}</td>
+              <td className="px-5 py-4 text-fg-muted">{o.closes}</td>
               <td className="px-5 py-4">
                 <Badge label={stageBadge[o.stage] ?? o.stage} />
               </td>

@@ -25,6 +25,14 @@ const modules = [
     name: "Finance Studio",
     desc: "Cashflow simulation, margin forecasting, valuations, and invoice validation drawn from the same data the site runs on.",
   },
+  {
+    name: "AI Workforce",
+    desc: "Sixteen specialized agents — engineering to legal — each with defined purpose, permissions, approval gates, and a full audit trail.",
+  },
+  {
+    name: "Infrastructure Intelligence",
+    desc: "Assets stay connected after handover: condition scoring, predictive maintenance, and lifecycle economics per sector.",
+  },
 ];
 
 const outcomes = [
@@ -105,7 +113,7 @@ export default function Home() {
         />
         <div className="relative mx-auto max-w-6xl px-6 pb-24 pt-24 text-center">
           <p className="mb-5 inline-block rounded-full border border-ink-600 px-4 py-1 text-xs font-medium uppercase tracking-widest text-ink-300">
-            The Infrastructure Intelligence Platform
+            The Autonomous Infrastructure Operating System
           </p>
           <h1 className="mx-auto max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-white md:text-6xl">
             The operating system for infrastructure

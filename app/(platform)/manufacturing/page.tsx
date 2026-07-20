@@ -17,24 +17,24 @@ export default function ManufacturingPage() {
       </div>
 
       <Card className="mt-6">
-        <CardHeader title="Work orders" right={<span className="text-xs text-ink-400">Linked to project programme dates</span>} />
+        <CardHeader title="Work orders" right={<span className="text-xs text-fg-faint">Linked to project programme dates</span>} />
         <Table headers={["Item", "Project", "Factory", "Quantity", "Due", "Progress", "Status"]}>
           {workOrders.map((w) => (
-            <tr key={w.id} className="transition hover:bg-ink-50">
+            <tr key={w.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{w.item}</div>
-                <div className="mt-0.5 text-xs text-ink-400">{w.id}</div>
+                <div className="font-medium text-fg">{w.item}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{w.id}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">
+              <td className="px-5 py-4 text-fg-muted">
                 {projects.find((p) => p.id === w.project)?.name}
               </td>
-              <td className="px-5 py-4 text-ink-600">{w.factory}</td>
-              <td className="px-5 py-4 text-ink-600">{w.qty}</td>
-              <td className="px-5 py-4 text-ink-600">{w.due}</td>
+              <td className="px-5 py-4 text-fg-muted">{w.factory}</td>
+              <td className="px-5 py-4 text-fg-muted">{w.qty}</td>
+              <td className="px-5 py-4 text-fg-muted">{w.due}</td>
               <td className="px-5 py-4">
                 <div className="flex w-32 items-center gap-2">
                   <Progress value={w.progress} />
-                  <span className="text-xs text-ink-400">{w.progress}%</span>
+                  <span className="text-xs text-fg-faint">{w.progress}%</span>
                 </div>
               </td>
               <td className="px-5 py-4">

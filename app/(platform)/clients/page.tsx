@@ -9,7 +9,7 @@ export default function ClientsPage() {
         title="Client Success"
         subtitle="Every client, their portal activity, reports, and approvals."
         actions={
-          <button className="rounded-md bg-signal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-signal-600">
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             Generate progress reports
           </button>
         }
@@ -23,13 +23,13 @@ export default function ClientsPage() {
       </div>
 
       <Card className="mt-6">
-        <CardHeader title="Clients" right={<span className="text-xs text-ink-400">Weekly reports assemble automatically from live project data</span>} />
+        <CardHeader title="Clients" right={<span className="text-xs text-fg-faint">Weekly reports assemble automatically from live project data</span>} />
         <Table headers={["Client", "Contact", "Contracted", "Satisfaction", "Last report", "Approvals pending"]}>
           {clients.map((c) => (
-            <tr key={c.name} className="transition hover:bg-ink-50">
-              <td className="px-5 py-4 font-medium text-ink-900">{c.name}</td>
-              <td className="px-5 py-4 text-ink-600">{c.contact}</td>
-              <td className="px-5 py-4 text-ink-900">{fmt.zar(c.contracted)}</td>
+            <tr key={c.name} className="transition hover:bg-raise">
+              <td className="px-5 py-4 font-medium text-fg">{c.name}</td>
+              <td className="px-5 py-4 text-fg-muted">{c.contact}</td>
+              <td className="px-5 py-4 text-fg">{fmt.zar(c.contracted)}</td>
               <td className="px-5 py-4">
                 <span
                   className={`font-medium ${
@@ -39,9 +39,9 @@ export default function ClientsPage() {
                   {c.satisfaction.toFixed(1)}
                 </span>
               </td>
-              <td className="px-5 py-4 text-ink-600">{c.lastReport}</td>
+              <td className="px-5 py-4 text-fg-muted">{c.lastReport}</td>
               <td className="px-5 py-4">
-                <span className={c.pendingApprovals > 0 ? "font-medium text-caution" : "text-ink-400"}>
+                <span className={c.pendingApprovals > 0 ? "font-medium text-caution" : "text-fg-faint"}>
                   {c.pendingApprovals}
                 </span>
               </td>

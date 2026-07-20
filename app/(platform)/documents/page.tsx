@@ -10,7 +10,7 @@ export default function DocumentsPage() {
         title="Documents"
         subtitle="Contracts, drawings, reports, RFIs, and variations — indexed and searchable by every agent."
         actions={
-          <button className="rounded-md bg-signal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-signal-600">
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             Upload
           </button>
         }
@@ -27,19 +27,19 @@ export default function DocumentsPage() {
         <CardHeader title="Recent documents" />
         <Table headers={["Document", "Project", "Type", "Version", "Size", "AI index"]}>
           {documents.map((d) => (
-            <tr key={d.id} className="transition hover:bg-ink-50">
+            <tr key={d.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{d.name}</div>
-                <div className="mt-0.5 text-xs text-ink-400">{d.id} · uploaded {d.uploaded}</div>
+                <div className="font-medium text-fg">{d.name}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{d.id} · uploaded {d.uploaded}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">
-                <Link href={`/projects/${d.project}`} className="hover:text-signal-600">
+              <td className="px-5 py-4 text-fg-muted">
+                <Link href={`/projects/${d.project}`} className="hover:text-accent">
                   {projects.find((p) => p.id === d.project)?.name}
                 </Link>
               </td>
-              <td className="px-5 py-4 text-ink-600">{d.type}</td>
-              <td className="px-5 py-4 text-ink-600">{d.version}</td>
-              <td className="px-5 py-4 text-ink-600">{d.size}</td>
+              <td className="px-5 py-4 text-fg-muted">{d.type}</td>
+              <td className="px-5 py-4 text-fg-muted">{d.version}</td>
+              <td className="px-5 py-4 text-fg-muted">{d.size}</td>
               <td className="px-5 py-4">
                 <Badge label={d.indexed === "Indexed" ? "Passed" : d.indexed === "Processing" ? "In review" : "Queued"} />
               </td>
@@ -50,13 +50,13 @@ export default function DocumentsPage() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader title="RFIs" right={<span className="text-xs text-ink-400">Ball-in-court tracking</span>} />
-          <div className="divide-y divide-ink-100">
+          <CardHeader title="RFIs" right={<span className="text-xs text-fg-faint">Ball-in-court tracking</span>} />
+          <div className="divide-y divide-edge">
             {rfis.map((r) => (
               <div key={r.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                 <div>
-                  <div className="text-sm font-medium text-ink-900">{r.subject}</div>
-                  <div className="mt-0.5 text-xs text-ink-400">
+                  <div className="text-sm font-medium text-fg">{r.subject}</div>
+                  <div className="mt-0.5 text-xs text-fg-faint">
                     {r.id} · {projects.find((p) => p.id === r.project)?.name} · with {r.ballInCourt} · due {r.due}
                   </div>
                 </div>
@@ -67,12 +67,12 @@ export default function DocumentsPage() {
         </Card>
         <Card className="self-start">
           <CardHeader title="Variation orders" />
-          <div className="divide-y divide-ink-100">
+          <div className="divide-y divide-edge">
             {variations.map((v) => (
               <div key={v.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                 <div>
-                  <div className="text-sm font-medium text-ink-900">{v.description}</div>
-                  <div className="mt-0.5 text-xs text-ink-400">
+                  <div className="text-sm font-medium text-fg">{v.description}</div>
+                  <div className="mt-0.5 text-xs text-fg-faint">
                     {v.id} · {projects.find((p) => p.id === v.project)?.name} · {fmt.zar(v.value)}
                   </div>
                 </div>

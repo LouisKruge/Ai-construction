@@ -633,6 +633,78 @@ export const team: TeamMember[] = [
   { name: "M. van Wyk", role: "Client — Redstone", email: "m.vanwyk@redstone.example", access: "Viewer", lastActive: "Yesterday" },
 ];
 
+// ─── AI Workforce ───────────────────────────────────────────────────────────
+
+export interface Agent {
+  name: string;
+  department: string;
+  purpose: string;
+  inputs: string;
+  outputs: string;
+  autonomy: "Autonomous within limits" | "Recommends only" | "Requires approval";
+  approvalGate: string;
+  actions30d: number;
+  acceptRate: number; // 0-1, share of recommendations accepted
+  status: "Active" | "Paused";
+}
+
+export const agents: Agent[] = [
+  { name: "CEO AI", department: "Executive", purpose: "Portfolio health, profitability, and strategic risk across the company.", inputs: "All project KPIs, finance, pipeline, benchmarks", outputs: "Executive briefings, health score, strategic alerts", autonomy: "Recommends only", approvalGate: "All outputs advisory", actions30d: 41, acceptRate: 0.74, status: "Active" },
+  { name: "COO AI", department: "Executive", purpose: "Cross-project coordination, resource balancing, and delay mitigation.", inputs: "Programmes, resource plans, site progress", outputs: "Re-sequencing proposals, resource moves", autonomy: "Requires approval", approvalGate: "Any schedule re-baseline", actions30d: 63, acceptRate: 0.68, status: "Active" },
+  { name: "CFO AI", department: "Finance", purpose: "Cashflow simulation, margin forecasting, and invoice validation.", inputs: "Valuations, commitments, invoices, market indices", outputs: "Cash forecasts, margin alerts, validated invoices", autonomy: "Autonomous within limits", approvalGate: "Payments and facility draws", actions30d: 188, acceptRate: 0.91, status: "Active" },
+  { name: "Engineering AI", department: "Engineering", purpose: "Drawing review, load checks, and code compliance across disciplines.", inputs: "Drawings, BIM models, codes (SANS, Eurocode)", outputs: "Review findings, compliance reports", autonomy: "Autonomous within limits", approvalGate: "Engineer sign-off before issue", actions30d: 342, acceptRate: 0.88, status: "Active" },
+  { name: "Estimator AI", department: "Engineering", purpose: "Quantity takeoff and cost estimation from models and drawings.", inputs: "BIM, drawings, rate libraries, market prices", outputs: "BOQs, estimates, tender pricing", autonomy: "Requires approval", approvalGate: "All submitted prices", actions30d: 57, acceptRate: 0.79, status: "Active" },
+  { name: "Scheduler AI", department: "Construction", purpose: "Programme generation, critical path optimization, delay prediction.", inputs: "Programmes, progress, weather, supplier lead times", outputs: "Schedules, float analysis, delay alerts", autonomy: "Autonomous within limits", approvalGate: "Baseline changes", actions30d: 214, acceptRate: 0.82, status: "Active" },
+  { name: "Construction AI", department: "Construction", purpose: "Site progress from photos and drones, daily plans, sequencing.", inputs: "Site captures, diaries, programmes", outputs: "Progress %, daily site plans, deviation flags", autonomy: "Autonomous within limits", approvalGate: "None — observational", actions30d: 428, acceptRate: 0.9, status: "Active" },
+  { name: "Manufacturing AI", department: "Manufacturing", purpose: "Fabrication packages, BOMs, production scheduling, factory selection.", inputs: "IFC models, factory capacity, material prices", outputs: "Fab drawings, BOMs, work orders", autonomy: "Requires approval", approvalGate: "Work order release", actions30d: 96, acceptRate: 0.77, status: "Active" },
+  { name: "Procurement AI", department: "Procurement", purpose: "Supplier discovery, RFQ generation, quote benchmarking, negotiation prep.", inputs: "BOQs, supplier network, price history", outputs: "RFQs, comparisons, award recommendations", autonomy: "Autonomous within limits", approvalGate: "POs above R500k", actions30d: 261, acceptRate: 0.86, status: "Active" },
+  { name: "Quality AI", department: "Delivery", purpose: "Defect detection from captures, inspection scheduling, snag tracking.", inputs: "Photos, scans, checklists, specs", outputs: "Defect register entries, inspection plans", autonomy: "Autonomous within limits", approvalGate: "Closing defects requires QA sign-off", actions30d: 173, acceptRate: 0.84, status: "Active" },
+  { name: "Safety AI", department: "Delivery", purpose: "Hazard detection, permit tracking, incident pattern analysis.", inputs: "Camera feeds, permits, incident log", outputs: "Observations, permit alerts, risk patterns", autonomy: "Autonomous within limits", approvalGate: "None — always alerts humans", actions30d: 152, acceptRate: 0.93, status: "Active" },
+  { name: "Risk AI", department: "Executive", purpose: "Cross-domain risk scoring and early-warning aggregation per project.", inputs: "All module signals, external data (weather, FX, prices)", outputs: "Risk scores, early warnings, mitigation options", autonomy: "Recommends only", approvalGate: "All outputs advisory", actions30d: 89, acceptRate: 0.71, status: "Active" },
+  { name: "Compliance AI", department: "Governance", purpose: "Regulatory checks: building codes, permits, environmental conditions.", inputs: "Drawings, permit registers, regulations", outputs: "Compliance reports, expiry alerts", autonomy: "Autonomous within limits", approvalGate: "Filings require sign-off", actions30d: 118, acceptRate: 0.9, status: "Active" },
+  { name: "Legal AI", department: "Governance", purpose: "Contract analysis, obligation tracking, variation drafting support.", inputs: "Contracts, correspondence, VOs", outputs: "Obligation registers, clause flags, VO drafts", autonomy: "Recommends only", approvalGate: "All legal output reviewed by counsel", actions30d: 44, acceptRate: 0.66, status: "Active" },
+  { name: "Project Manager AI", department: "Delivery", purpose: "Meeting summaries, action tracking, RFI routing, status reporting.", inputs: "Meetings, RFIs, tasks, programme", outputs: "Minutes, action lists, weekly reports", autonomy: "Autonomous within limits", approvalGate: "External comms require approval", actions30d: 309, acceptRate: 0.89, status: "Active" },
+  { name: "Client Success AI", department: "Commercial", purpose: "Client reporting, portal updates, satisfaction signal tracking.", inputs: "Project data, client interactions", outputs: "Progress reports, approval requests, alerts", autonomy: "Autonomous within limits", approvalGate: "Report release configurable per client", actions30d: 84, acceptRate: 0.95, status: "Active" },
+];
+
+// ─── Infrastructure intelligence ────────────────────────────────────────────
+
+export interface SectorIntel {
+  sector: string;
+  activeValue: number; // ZAR under management
+  assets: number; // operating assets with live twins
+  conditionScore: number; // 0-100 asset condition
+  maintenanceDue: number;
+  trend: "Growing" | "Stable" | "Contracting";
+}
+
+export const sectors: SectorIntel[] = [
+  { sector: "Commercial buildings", activeValue: 486_000_000, assets: 12, conditionScore: 87, maintenanceDue: 3, trend: "Stable" },
+  { sector: "Roads & civil", activeValue: 912_000_000, assets: 6, conditionScore: 78, maintenanceDue: 5, trend: "Growing" },
+  { sector: "Renewable energy", activeValue: 1_640_000_000, assets: 4, conditionScore: 94, maintenanceDue: 1, trend: "Growing" },
+  { sector: "Healthcare", activeValue: 356_000_000, assets: 3, conditionScore: 91, maintenanceDue: 2, trend: "Stable" },
+  { sector: "Industrial & logistics", activeValue: 238_000_000, assets: 8, conditionScore: 82, maintenanceDue: 4, trend: "Growing" },
+  { sector: "Data centres", activeValue: 2_100_000_000, assets: 0, conditionScore: 0, maintenanceDue: 0, trend: "Growing" },
+];
+
+export interface AssetRecord {
+  name: string;
+  sector: string;
+  commissioned: string;
+  condition: number;
+  nextMaintenance: string;
+  openWorkOrders: number;
+  energyTrend: string;
+}
+
+export const assets: AssetRecord[] = [
+  { name: "Rosebank Link Offices", sector: "Commercial buildings", commissioned: "2023-04", condition: 89, nextMaintenance: "2026-08-12 — HVAC coil replacement", openWorkOrders: 2, energyTrend: "-4% YoY" },
+  { name: "N3 Van Reenen realignment", sector: "Roads & civil", commissioned: "2021-11", condition: 76, nextMaintenance: "2026-09-01 — surface rehabilitation, km 12–18", openWorkOrders: 3, energyTrend: "n/a" },
+  { name: "De Aar 90MW Solar", sector: "Renewable energy", commissioned: "2024-06", condition: 95, nextMaintenance: "2026-07-29 — inverter firmware + string test", openWorkOrders: 1, energyTrend: "+2% vs P50" },
+  { name: "Khayelitsha District Clinic", sector: "Healthcare", commissioned: "2022-09", condition: 90, nextMaintenance: "2026-10-05 — generator service", openWorkOrders: 1, energyTrend: "-1% YoY" },
+  { name: "Epping Cold Store", sector: "Industrial & logistics", commissioned: "2020-02", condition: 79, nextMaintenance: "2026-08-03 — ammonia plant inspection", openWorkOrders: 4, energyTrend: "+6% YoY ⚠" },
+];
+
 export const fmt = {
   zar(n: number): string {
     if (n >= 1_000_000_000) return `R${(n / 1_000_000_000).toFixed(2)}bn`;

@@ -1,21 +1,23 @@
 import Sidebar from "@/components/Sidebar";
+import CommandPalette, { PaletteTrigger } from "@/components/CommandPalette";
 
 export default function PlatformLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="min-h-screen bg-ink-50">
+    <div className="min-h-screen bg-base text-fg">
       <Sidebar />
+      <CommandPalette />
       <div className="pl-60">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-ink-100 bg-white/90 px-8 backdrop-blur">
-          <input
-            type="search"
-            placeholder="Ask Atlas anything — “Why is Sandton Gate behind schedule?”"
-            className="w-[28rem] max-w-full rounded-md border border-ink-100 bg-ink-50 px-4 py-2 text-sm outline-none placeholder:text-ink-400 focus:border-signal-500"
-          />
-          <div className="flex items-center gap-4 text-sm text-ink-400">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-edge bg-base/85 px-8 backdrop-blur">
+          <PaletteTrigger />
+          <div className="flex items-center gap-4 text-xs text-fg-faint">
+            <span className="hidden items-center gap-1.5 md:flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-positive" />
+              All agents operational
+            </span>
             <span className="hidden md:inline">Sun 20 Jul 2026</span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-700 text-xs font-semibold text-white">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-edge bg-surface text-[11px] font-semibold text-fg-muted">
               LK
             </span>
           </div>

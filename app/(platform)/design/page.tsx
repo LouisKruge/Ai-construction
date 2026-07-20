@@ -10,7 +10,7 @@ export default function DesignPage() {
         title="Design & Architecture Studio"
         subtitle="Design packages, BIM coordination, and clash detection across every discipline."
         actions={
-          <button className="rounded-md bg-signal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-signal-600">
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             Upload model
           </button>
         }
@@ -24,25 +24,25 @@ export default function DesignPage() {
       </div>
 
       <Card className="mt-6">
-        <CardHeader title="Design packages" right={<span className="text-xs text-ink-400">Approval progress per package</span>} />
+        <CardHeader title="Design packages" right={<span className="text-xs text-fg-faint">Approval progress per package</span>} />
         <Table headers={["Package", "Project", "Architect", "Stage", "Approved", "Status"]}>
           {designPackages.map((d) => (
-            <tr key={d.id} className="transition hover:bg-ink-50">
+            <tr key={d.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{d.name}</div>
-                <div className="mt-0.5 text-xs text-ink-400">{d.id}</div>
+                <div className="font-medium text-fg">{d.name}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{d.id}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">
-                <Link href={`/projects/${d.project}`} className="hover:text-signal-600">
+              <td className="px-5 py-4 text-fg-muted">
+                <Link href={`/projects/${d.project}`} className="hover:text-accent">
                   {projects.find((p) => p.id === d.project)?.name}
                 </Link>
               </td>
-              <td className="px-5 py-4 text-ink-600">{d.architect}</td>
-              <td className="px-5 py-4 text-ink-600">{d.stage}</td>
+              <td className="px-5 py-4 text-fg-muted">{d.architect}</td>
+              <td className="px-5 py-4 text-fg-muted">{d.stage}</td>
               <td className="px-5 py-4">
                 <div className="flex w-36 items-center gap-2">
                   <Progress value={(d.approved / d.drawings) * 100} />
-                  <span className="whitespace-nowrap text-xs text-ink-400">
+                  <span className="whitespace-nowrap text-xs text-fg-faint">
                     {d.approved}/{d.drawings}
                   </span>
                 </div>
@@ -56,24 +56,24 @@ export default function DesignPage() {
       </Card>
 
       <Card className="mt-6">
-        <CardHeader title="Clash detection" right={<span className="text-xs text-ink-400">Automated model coordination — resolved / total</span>} />
+        <CardHeader title="Clash detection" right={<span className="text-xs text-fg-faint">Automated model coordination — resolved / total</span>} />
         <Table headers={["Clash set", "Project", "Zone", "Resolution", "Status"]}>
           {clashSets.map((c) => (
-            <tr key={c.id} className="transition hover:bg-ink-50">
+            <tr key={c.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{c.disciplines}</div>
-                <div className="mt-0.5 text-xs text-ink-400">{c.id}</div>
+                <div className="font-medium text-fg">{c.disciplines}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{c.id}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">
-                <Link href={`/projects/${c.project}`} className="hover:text-signal-600">
+              <td className="px-5 py-4 text-fg-muted">
+                <Link href={`/projects/${c.project}`} className="hover:text-accent">
                   {projects.find((p) => p.id === c.project)?.name}
                 </Link>
               </td>
-              <td className="px-5 py-4 text-ink-600">{c.zone}</td>
+              <td className="px-5 py-4 text-fg-muted">{c.zone}</td>
               <td className="px-5 py-4">
                 <div className="flex w-36 items-center gap-2">
                   <Progress value={(c.resolved / c.clashes) * 100} tone={c.status === "Open" ? "caution" : "neutral"} />
-                  <span className="whitespace-nowrap text-xs text-ink-400">
+                  <span className="whitespace-nowrap text-xs text-fg-faint">
                     {c.resolved}/{c.clashes}
                   </span>
                 </div>

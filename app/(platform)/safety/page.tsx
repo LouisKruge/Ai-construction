@@ -9,7 +9,7 @@ export default function SafetyPage() {
         title="Safety Studio"
         subtitle="Incidents, permits, observations, and site safety intelligence."
         actions={
-          <button className="rounded-md bg-signal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-signal-600">
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             + Log entry
           </button>
         }
@@ -25,28 +25,28 @@ export default function SafetyPage() {
       <Card className="mt-6">
         <CardHeader
           title="Safety log"
-          right={<span className="text-xs text-ink-400">Camera and drone observations feed this register automatically</span>}
+          right={<span className="text-xs text-fg-faint">Camera and drone observations feed this register automatically</span>}
         />
         <Table headers={["Type", "Description", "Project", "Date", "Status"]}>
           {safetyItems.map((s) => (
-            <tr key={s.id} className="transition hover:bg-ink-50">
+            <tr key={s.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
                 <span
                   className={`text-sm font-medium ${
-                    s.type === "Near miss" || s.type === "First aid" ? "text-critical" : "text-ink-900"
+                    s.type === "Near miss" || s.type === "First aid" ? "text-critical" : "text-fg"
                   }`}
                 >
                   {s.type}
                 </span>
-                <div className="mt-0.5 text-xs text-ink-400">{s.id}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{s.id}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">{s.description}</td>
-              <td className="px-5 py-4 text-ink-600">
-                <Link href={`/projects/${s.project}`} className="hover:text-signal-600">
+              <td className="px-5 py-4 text-fg-muted">{s.description}</td>
+              <td className="px-5 py-4 text-fg-muted">
+                <Link href={`/projects/${s.project}`} className="hover:text-accent">
                   {projects.find((p) => p.id === s.project)?.name}
                 </Link>
               </td>
-              <td className="px-5 py-4 text-ink-600">{s.date}</td>
+              <td className="px-5 py-4 text-fg-muted">{s.date}</td>
               <td className="px-5 py-4">
                 <Badge label={s.status === "Active" ? "In production" : s.status === "Closed" ? "Passed" : "Open"} />
               </td>

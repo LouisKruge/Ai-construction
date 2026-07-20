@@ -9,7 +9,7 @@ export default function EngineeringPage() {
         title="Engineering Studio"
         subtitle="Automated drawing review, compliance checks, and revision control."
         actions={
-          <button className="rounded-md bg-signal-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-signal-600">
+          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             Upload drawings
           </button>
         }
@@ -23,21 +23,21 @@ export default function EngineeringPage() {
       </div>
 
       <Card className="mt-6">
-        <CardHeader title="Review queue" right={<span className="text-xs text-ink-400">Automated first pass · engineer sign-off required</span>} />
+        <CardHeader title="Review queue" right={<span className="text-xs text-fg-faint">Automated first pass · engineer sign-off required</span>} />
         <Table headers={["Drawing", "Project", "Discipline", "Revision", "Findings", "Status"]}>
           {engReviews.map((r) => (
-            <tr key={r.id} className="transition hover:bg-ink-50">
+            <tr key={r.id} className="transition hover:bg-raise">
               <td className="px-5 py-4">
-                <div className="font-medium text-ink-900">{r.drawing}</div>
-                <div className="mt-0.5 text-xs text-ink-400">{r.id} · {r.reviewer}</div>
+                <div className="font-medium text-fg">{r.drawing}</div>
+                <div className="mt-0.5 text-xs text-fg-faint">{r.id} · {r.reviewer}</div>
               </td>
-              <td className="px-5 py-4 text-ink-600">
+              <td className="px-5 py-4 text-fg-muted">
                 {projects.find((p) => p.id === r.project)?.name}
               </td>
-              <td className="px-5 py-4 text-ink-600">{r.discipline}</td>
-              <td className="px-5 py-4 text-ink-600">{r.revision}</td>
+              <td className="px-5 py-4 text-fg-muted">{r.discipline}</td>
+              <td className="px-5 py-4 text-fg-muted">{r.revision}</td>
               <td className="px-5 py-4">
-                <span className={r.findings > 0 ? "font-medium text-critical" : "text-ink-400"}>
+                <span className={r.findings > 0 ? "font-medium text-critical" : "text-fg-faint"}>
                   {r.findings}
                 </span>
               </td>
