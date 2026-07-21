@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { navGroups } from "@/components/Sidebar";
+import { navGroups, extraRoutes } from "@/components/Sidebar";
 import { projects } from "@/lib/data";
 
 interface Command {
@@ -37,6 +37,13 @@ const commands: Command[] = [
       href: i.href,
     })),
   ),
+  ...extraRoutes.map((r) => ({
+    id: r.href,
+    group: "Go to",
+    label: r.label,
+    hint: "module",
+    href: r.href,
+  })),
   ...projects.map((p) => ({
     id: p.id,
     group: "Projects",

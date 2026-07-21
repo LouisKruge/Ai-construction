@@ -1,98 +1,167 @@
-// Stylised isometric building massing — a lightweight CSS/SVG stand-in for a
-// real BIM/3D viewport. Reads as a rendered tower on a blueprint stage:
-// glass facets, edge highlights, ambient floor glow. No WebGL dependency.
+// Stylised glass tower in 3/4 perspective — a lightweight SVG stand-in for a
+// real BIM/3D viewport. Two curtain-wall faces with floor plates, mullions and
+// lit windows on a dark city stage. No WebGL dependency.
 
-export default function BuildingRender({ className = "" }: { className?: string }) {
+type P = [number, number];
+const lerp = (a: P, b: P, t: number): P => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+// bilinear point inside a quad defined by corners tl,tr,bl,br
+const quadPt = (tl: P, tr: P, bl: P, br: P, s: number, t: number): P =>
+  lerp(lerp(tl, tr, s), lerp(bl, br, s), t);
+
+export default function BuildingRender({
+  className = "",
+  chrome = true,
+}: {
+  className?: string;
+  chrome?: boolean;
+}) {
+  // Front face corners (slight upward tilt to read as a low camera)
+  const fTL: P = [150, 66], fTR: P = [250, 80], fBR: P = [250, 300], fBL: P = [150, 288];
+  // Right (side) face — recedes to the back-right
+  const sTL: P = fTR, sTR: P = [300, 104], sBR: P = [300, 266], sBL: P = fBR;
+
+  const floors = 22;
+  const fCols = 6;
+  const sCols = 3;
+
+  // deterministic "lit window" pattern on the front face
+  const lit = (r: number, c: number) => (r * 3 + c * 7) % 11 < 3;
+
+  // faint city lights behind the tower
+  const dots = Array.from({ length: 54 }, (_, i) => ({
+    x: (i * 137.5) % 400,
+    y: 250 + ((i * 71) % 96),
+    r: (i % 3) * 0.35 + 0.4,
+    o: 0.12 + (i % 5) * 0.04,
+  }));
+
   return (
-    <div className={`blueprint relative overflow-hidden rounded-xl border border-edge bg-base ${className}`}>
-      {/* ambient lighting */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-4 h-40 w-72 -translate-x-1/2 rounded-full bg-accent/20 blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 h-24 w-96 -translate-x-1/2 rounded-[100%] bg-accent-2/15 blur-2xl" />
-      </div>
-
-      <svg viewBox="0 0 360 300" className="relative h-full w-full">
+    <div className={`relative overflow-hidden rounded-xl border border-edge bg-[#070a12] ${className}`}>
+      <svg viewBox="0 0 400 340" className="h-full w-full">
         <defs>
-          <linearGradient id="face-l" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#1a2440" />
-            <stop offset="1" stopColor="#0f1626" />
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#0c1430" />
+            <stop offset="0.6" stopColor="#080d1c" />
+            <stop offset="1" stopColor="#05070f" />
           </linearGradient>
-          <linearGradient id="face-r" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#26314f" />
-            <stop offset="1" stopColor="#151d31" />
+          <linearGradient id="glass-front" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#3a4a86" />
+            <stop offset="0.5" stopColor="#1d2748" />
+            <stop offset="1" stopColor="#141b33" />
           </linearGradient>
-          <linearGradient id="face-top" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#3b4a72" />
-            <stop offset="1" stopColor="#26314f" />
+          <linearGradient id="glass-side" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#141c34" />
+            <stop offset="1" stopColor="#0c1224" />
           </linearGradient>
-          <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#6d7cff" stopOpacity="0.9" />
-            <stop offset="1" stopColor="#38bdf8" stopOpacity="0.5" />
+          <linearGradient id="sheen-front" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#8ea2ff" stopOpacity="0.5" />
+            <stop offset="0.25" stopColor="#8ea2ff" stopOpacity="0" />
+          </linearGradient>
+          <radialGradient id="halo" cx="0.5" cy="0.35" r="0.6">
+            <stop offset="0" stopColor="#6d7cff" stopOpacity="0.35" />
+            <stop offset="1" stopColor="#6d7cff" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="reflect" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#2a3568" stopOpacity="0.4" />
+            <stop offset="1" stopColor="#2a3568" stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* ground plate */}
-        <polygon points="180,250 320,190 180,130 40,190" fill="#0c1220" stroke="#212a3c" strokeWidth="1" />
-        <polygon points="180,250 320,190 180,130 40,190" fill="none" stroke="#6d7cff" strokeOpacity="0.15" strokeWidth="1" />
+        {/* sky + ambient halo */}
+        <rect x="0" y="0" width="400" height="340" fill="url(#sky)" />
+        <rect x="60" y="10" width="280" height="240" fill="url(#halo)" />
 
-        {/* podium */}
-        <g>
-          <polygon points="180,150 300,90 180,30 60,90" fill="url(#face-top)" />
-          <polygon points="60,90 180,150 180,210 60,150" fill="url(#face-l)" />
-          <polygon points="300,90 180,150 180,210 300,150" fill="url(#face-r)" />
-        </g>
+        {/* city lights */}
+        {dots.map((d, i) => (
+          <circle key={i} cx={d.x} cy={d.y} r={d.r} fill="#6d7cff" opacity={d.o} />
+        ))}
 
-        {/* tower — stacked storeys */}
-        {Array.from({ length: 9 }).map((_, i) => {
-          const y = 150 - i * 16;
-          const shrink = i * 2;
-          const lx = 108 + shrink;
-          const rx = 252 - shrink;
-          const midY = y;
-          return (
-            <g key={i}>
-              {/* left face */}
+        {/* ground reflection */}
+        <polygon points="150,300 250,300 300,266 300,320 150,320" fill="url(#reflect)" opacity="0.5" />
+
+        {/* right (side) face */}
+        <polygon points={`${sTL} ${sTR} ${sBR} ${sBL}`} fill="url(#glass-side)" />
+        {/* front face */}
+        <polygon points={`${fTL} ${fTR} ${fBR} ${fBL}`} fill="url(#glass-front)" />
+
+        {/* lit windows on the front face */}
+        {Array.from({ length: floors }).flatMap((_, r) =>
+          Array.from({ length: fCols }).map((_, c) => {
+            if (!lit(r, c)) return null;
+            const p0 = quadPt(fTL, fTR, fBL, fBR, c / fCols, r / floors);
+            const p1 = quadPt(fTL, fTR, fBL, fBR, (c + 1) / fCols, r / floors);
+            const p2 = quadPt(fTL, fTR, fBL, fBR, (c + 1) / fCols, (r + 1) / floors);
+            const p3 = quadPt(fTL, fTR, fBL, fBR, c / fCols, (r + 1) / floors);
+            return (
               <polygon
-                points={`${lx},${midY} 180,${midY + 30} 180,${midY + 14} ${lx},${midY - 16}`}
-                fill="url(#face-l)"
-                stroke="#38bdf8"
-                strokeOpacity="0.12"
-                strokeWidth="0.6"
+                key={`${r}-${c}`}
+                points={`${p0} ${p1} ${p2} ${p3}`}
+                fill="#aebcff"
+                opacity={0.14 + ((r + c) % 3) * 0.06}
               />
-              {/* right face */}
-              <polygon
-                points={`${rx},${midY} 180,${midY + 30} 180,${midY + 14} ${rx},${midY - 16}`}
-                fill="url(#face-r)"
-                stroke="#38bdf8"
-                strokeOpacity="0.12"
-                strokeWidth="0.6"
-              />
-            </g>
-          );
+            );
+          }),
+        )}
+
+        {/* front sheen highlight */}
+        <polygon points={`${fTL} ${fTR} ${fBR} ${fBL}`} fill="url(#sheen-front)" />
+
+        {/* front floor plates */}
+        {Array.from({ length: floors - 1 }).map((_, k) => {
+          const t = (k + 1) / floors;
+          const a = lerp(fTL, fBL, t);
+          const b = lerp(fTR, fBR, t);
+          return <line key={`ff${k}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#0a1024" strokeWidth="0.8" opacity="0.7" />;
         })}
-        {/* top cap */}
-        <polygon points="180,-4 236,28 180,60 124,28" fill="url(#face-top)" stroke="#6d7cff" strokeOpacity="0.4" strokeWidth="0.8" />
+        {/* front mullions */}
+        {Array.from({ length: fCols - 1 }).map((_, k) => {
+          const s = (k + 1) / fCols;
+          const a = lerp(fTL, fTR, s);
+          const b = lerp(fBL, fBR, s);
+          return <line key={`fm${k}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#0a1024" strokeWidth="0.7" opacity="0.6" />;
+        })}
+        {/* side floor plates */}
+        {Array.from({ length: floors - 1 }).map((_, k) => {
+          const t = (k + 1) / floors;
+          const a = lerp(sTL, sBL, t);
+          const b = lerp(sTR, sBR, t);
+          return <line key={`sf${k}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#05080f" strokeWidth="0.8" opacity="0.6" />;
+        })}
+        {/* side mullions */}
+        {Array.from({ length: sCols - 1 }).map((_, k) => {
+          const s = (k + 1) / sCols;
+          const a = lerp(sTL, sTR, s);
+          const b = lerp(sBL, sBR, s);
+          return <line key={`sm${k}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#05080f" strokeWidth="0.7" opacity="0.55" />;
+        })}
 
-        {/* vertical edge highlight */}
-        <line x1="180" y1="60" x2="180" y2="180" stroke="url(#glow)" strokeWidth="1.4" strokeOpacity="0.6" />
-
-        {/* scan line */}
-        <line x1="40" y1="118" x2="320" y2="118" stroke="#6d7cff" strokeOpacity="0.12" strokeWidth="1" strokeDasharray="3 4" />
+        {/* vertical corner highlight (front-right edge) */}
+        <line x1={fTR[0]} y1={fTR[1]} x2={fBR[0]} y2={fBR[1]} stroke="#8ea2ff" strokeWidth="1.1" opacity="0.5" />
+        {/* roof outlines */}
+        <polygon points={`${fTL} ${fTR} ${sTR} ${lerp(sTR, sTL, 1)}`} fill="#28356a" opacity="0.7" />
+        {/* crown + mast */}
+        <rect x="182" y="52" width="36" height="14" fill="#28356a" opacity="0.85" />
+        <line x1="200" y1="30" x2="200" y2="52" stroke="#8ea2ff" strokeWidth="1.2" opacity="0.7" />
+        <circle cx="200" cy="30" r="1.8" fill="#38bdf8" />
       </svg>
 
       {/* HUD chips */}
-      <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 text-[10px]">
-        <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-fg-muted backdrop-blur">
-          BIM · Rev D
-        </span>
-        <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-accent-cyan backdrop-blur">
-          LOD 350
-        </span>
-      </div>
-      <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded border border-edge bg-base/70 px-2 py-0.5 text-[10px] backdrop-blur">
-        <span className="live-dot h-1.5 w-1.5 rounded-full bg-positive" />
-        <span className="font-mono text-fg-muted">rendering · 60fps</span>
-      </div>
+      {chrome && (
+        <>
+          <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 text-[10px]">
+            <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-fg-muted backdrop-blur">
+              BIM · Rev D
+            </span>
+            <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-accent-cyan backdrop-blur">
+              LOD 350
+            </span>
+          </div>
+          <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded border border-edge bg-base/70 px-2 py-0.5 text-[10px] backdrop-blur">
+            <span className="live-dot h-1.5 w-1.5 rounded-full bg-positive" />
+            <span className="font-mono text-fg-muted">rendering · 60fps</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
