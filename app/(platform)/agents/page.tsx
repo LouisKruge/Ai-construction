@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { departments, deptAgents, boardBriefing } from "@/lib/workforce";
 import { Card, CardHeader, Kpi, PageHeader } from "@/components/ui";
+import CascadePanel from "@/components/CascadePanel";
 
 export default function AgentsHub() {
   const totalAgents = deptAgents.length;
@@ -88,6 +89,11 @@ export default function AgentsHub() {
             </dl>
           </div>
         </Card>
+      </div>
+
+      {/* Cross-department cascade */}
+      <div className="mt-6">
+        <CascadePanel />
       </div>
 
       {/* Department org chart */}

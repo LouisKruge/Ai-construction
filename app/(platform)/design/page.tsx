@@ -3,6 +3,7 @@ import { clashSets, designPackages, projects } from "@/lib/data";
 import { drawingJobs } from "@/lib/workforce";
 import { Badge, Card, CardHeader, Kpi, PageHeader, Progress, Table } from "@/components/ui";
 import DrawingPreview from "@/components/DrawingPreview";
+import DrawingGenerator from "@/components/DrawingGenerator";
 
 const drawingStatusTone: Record<string, string> = {
   "Approved & issued": "text-positive",
@@ -38,6 +39,11 @@ export default function DesignPage() {
         <Kpi label="Awaiting engineer review" value={String(awaitingReview)} sub="never issued without sign-off" tone="caution" />
         <Kpi label="Open clashes" value={String(openClashes)} sub="4 clash sets" tone={openClashes > 0 ? "caution" : "positive"} />
         <Kpi label="Active packages" value={String(designPackages.length)} sub="across 4 projects" />
+      </div>
+
+      {/* Live parametric generator */}
+      <div className="mt-6">
+        <DrawingGenerator />
       </div>
 
       {/* Generative drawing queue */}

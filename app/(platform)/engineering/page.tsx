@@ -1,5 +1,6 @@
 import { engReviews, projects } from "@/lib/data";
 import { Badge, Card, CardHeader, Kpi, PageHeader, Table } from "@/components/ui";
+import StructuralCalculator from "@/components/StructuralCalculator";
 
 export default function EngineeringPage() {
   const issues = engReviews.reduce((s, r) => s + r.findings, 0);
@@ -7,7 +8,7 @@ export default function EngineeringPage() {
     <>
       <PageHeader
         title="Engineering Studio"
-        subtitle="Automated drawing review, compliance checks, and revision control."
+        subtitle="Live calculations, automated drawing review, compliance checks, and revision control."
         actions={
           <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
             Upload drawings
@@ -20,6 +21,10 @@ export default function EngineeringPage() {
         <Kpi label="Open findings" value={String(issues)} tone={issues > 0 ? "caution" : "positive"} sub="from automated review" />
         <Kpi label="Compliance checks" value="128" sub="run this week · SANS / Eurocode" />
         <Kpi label="Avg. review time" value="26 min" sub="vs ~3 days manual" tone="positive" />
+      </div>
+
+      <div className="mt-6">
+        <StructuralCalculator />
       </div>
 
       <Card className="mt-6">

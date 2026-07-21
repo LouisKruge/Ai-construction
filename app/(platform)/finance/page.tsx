@@ -1,7 +1,6 @@
 import { cashflow, fmt, projects } from "@/lib/data";
-import { financeBrain } from "@/lib/workforce";
 import { Card, CardHeader, Kpi, PageHeader, Table } from "@/components/ui";
-import ScenarioEngine from "@/components/ScenarioEngine";
+import FinanceSim from "@/components/FinanceSim";
 
 export default function FinancePage() {
   const maxFlow = Math.max(...cashflow.flatMap((m) => [m.inflow, m.outflow]));
@@ -83,12 +82,7 @@ export default function FinancePage() {
         </Card>
       </div>
 
-      <ScenarioEngine
-        title="Enterprise Financial Brain"
-        note="Not what happened — what to do next. Every recommendation carries impact, confidence, and assumptions"
-        scenarios={financeBrain}
-        prompt="If we accelerate three receivables and delay non-critical capex, what is the 90-day cash effect?"
-      />
+      <FinanceSim />
     </>
   );
 }
