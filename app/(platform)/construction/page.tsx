@@ -2,22 +2,24 @@ import { projects, schedule } from "@/lib/data";
 import { Card, CardHeader, Kpi, PageHeader, Progress, Table } from "@/components/ui";
 import CriticalPath from "@/components/CriticalPath";
 import EvmPanel from "@/components/EvmPanel";
+import StudioHero from "@/components/StudioHero";
 
 export default function ConstructionPage() {
   const critical = schedule.filter((s) => s.critical);
   return (
     <>
-      <PageHeader
+      <StudioHero
         title="Construction Studio"
-        subtitle="Critical-path programming, earned-value controls, and live site progress."
+        subtitle="A real-time project command center — critical-path programming, earned-value controls, site logistics, and risk across every active site."
+        motif="construction"
+        status="Live · 4 sites"
+        kpis={[
+          { label: "Critical activities", value: String(critical.length), tone: "caution" },
+          { label: "Schedule variance", value: "−4.2 d", tone: "caution" },
+          { label: "Workforce on site", value: "1,384" },
+          { label: "Incidents (30d)", value: "0", tone: "positive" },
+        ]}
       />
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <Kpi label="Critical activities" value={String(critical.length)} sub="zero float" tone="caution" />
-        <Kpi label="Schedule variance" value="-4.2 days" sub="portfolio weighted average" tone="caution" />
-        <Kpi label="Workforce on site" value="1,384" sub="across 4 active sites" />
-        <Kpi label="Safety incidents (30d)" value="0" sub="LTIFR 0.00" tone="positive" />
-      </div>
 
       <div className="mt-6">
         <CriticalPath />

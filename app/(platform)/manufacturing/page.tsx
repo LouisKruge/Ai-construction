@@ -1,21 +1,23 @@
 import { projects, workOrders } from "@/lib/data";
 import { Badge, Card, CardHeader, Kpi, PageHeader, Progress, Table } from "@/components/ui";
 import ManufacturingSim from "@/components/ManufacturingSim";
+import StudioHero from "@/components/StudioHero";
 
 export default function ManufacturingPage() {
   return (
     <>
-      <PageHeader
+      <StudioHero
         title="Manufacturing Studio"
-        subtitle="Fabrication packages, production tracking, and factory intelligence."
+        subtitle="A connected digital factory — fabrication packages, production simulation, machine utilisation, and quality checkpoints across the partner network."
+        motif="manufacturing"
+        status="Live · 3 factories"
+        kpis={[
+          { label: "Active work orders", value: "3" },
+          { label: "Factory utilisation", value: "82%" },
+          { label: "QA pass rate", value: "97.4%", tone: "positive" },
+          { label: "Material waste", value: "3.1%", tone: "positive" },
+        ]}
       />
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <Kpi label="Active work orders" value="3" sub="across 3 factories" />
-        <Kpi label="Factory utilisation" value="82%" sub="partner network average" />
-        <Kpi label="QA pass rate" value="97.4%" sub="last 90 days" tone="positive" />
-        <Kpi label="Material waste" value="3.1%" sub="vs 5.5% industry norm" tone="positive" />
-      </div>
 
       <Card className="mt-6">
         <CardHeader title="Work orders" right={<span className="text-xs text-fg-faint">Linked to project programme dates</span>} />

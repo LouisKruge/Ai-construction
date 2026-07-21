@@ -5,6 +5,7 @@ import { Badge, Card, CardHeader, Kpi, PageHeader, Progress, Table } from "@/com
 import DrawingPreview from "@/components/DrawingPreview";
 import DrawingGenerator from "@/components/DrawingGenerator";
 import RebarDetail from "@/components/RebarDetail";
+import DesignStudioHero from "@/components/DesignStudioHero";
 
 const drawingStatusTone: Record<string, string> = {
   "Approved & issued": "text-positive",
@@ -20,15 +21,19 @@ export default function DesignPage() {
   ).length;
   return (
     <>
+      <div className="mb-8">
+        <DesignStudioHero />
+      </div>
+
       <PageHeader
-        title="Design & Architecture Studio"
-        subtitle="Generative design across every discipline — floor plans, structural, mechanical, electrical — reviewed by a licensed engineer before issue."
+        title="Generative engineering drawings"
+        subtitle="Floor plans, structural, mechanical, electrical — reviewed by a licensed engineer before issue."
         actions={
           <div className="flex gap-2">
             <button className="rounded-md border border-edge px-4 py-2 text-sm font-medium text-fg-muted transition hover:border-edge-strong hover:text-fg">
               Upload model
             </button>
-            <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
+            <button className="rounded-md bg-gradient-to-r from-accent to-accent-2 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-accent/25 transition hover:brightness-110">
               + Generate drawing
             </button>
           </div>

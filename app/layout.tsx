@@ -12,7 +12,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="bg-ink-50 text-ink-900">{children}</body>
+      <body className="bg-base text-fg">{children}</body>
     </html>
   );
 }

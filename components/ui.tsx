@@ -23,12 +23,16 @@ export function PageHeader({
 export function Card({
   children,
   className = "",
+  interactive = false,
 }: {
   children: ReactNode;
   className?: string;
+  interactive?: boolean;
 }) {
   return (
-    <div className={`rounded-xl border border-edge bg-surface ${className}`}>
+    <div
+      className={`glass elev rounded-xl ${interactive ? "lift" : ""} ${className}`}
+    >
       {children}
     </div>
   );
@@ -37,7 +41,8 @@ export function Card({
 export function CardHeader({ title, right }: { title: string; right?: ReactNode }) {
   return (
     <div className="flex items-center justify-between border-b border-edge px-5 py-3.5">
-      <h2 className="text-[13px] font-semibold uppercase tracking-wider text-fg-muted">
+      <h2 className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wider text-fg-muted">
+        <span className="h-3 w-0.5 rounded-full bg-accent/70" />
         {title}
       </h2>
       {right}
@@ -62,19 +67,31 @@ export function Kpi({
     caution: "text-caution",
     critical: "text-critical",
   }[tone];
+  const dot = {
+    neutral: "bg-accent",
+    positive: "bg-positive",
+    caution: "bg-caution",
+    critical: "bg-critical",
+  }[tone];
   return (
-    <Card className="p-5">
-      <div className="text-[11px] font-medium uppercase tracking-widest text-fg-faint">
-        {label}
+    <div className="glass elev sheen relative overflow-hidden rounded-xl p-5">
+      {/* corner accent glow */}
+      <div
+        className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full opacity-20 blur-2xl"
+        style={{ background: "var(--color-accent)" }}
+      />
+      <div className="flex items-center gap-1.5">
+        <span className={`h-1 w-1 rounded-full ${dot}`} />
+        <span className="text-[11px] font-medium uppercase tracking-widest text-fg-faint">
+          {label}
+        </span>
       </div>
       <div className={`mt-2 text-2xl font-semibold tracking-tight ${toneCls}`}>{value}</div>
       {sub && <div className="mt-1 text-xs text-fg-faint">{sub}</div>}
-    </Card>
+    </div>
   );
 }
 
-// Status dots: state is carried by a small colored dot; the pill itself stays
-// monochrome so tables read calmly at density.
 const badgeDots: Record<string, string> = {
   "On track": "bg-positive",
   Passed: "bg-positive",
@@ -113,7 +130,7 @@ export function Progress({
   tone?: "neutral" | "caution" | "critical";
 }) {
   const bar = {
-    neutral: "bg-fg-muted",
+    neutral: "bg-gradient-to-r from-accent to-accent-2",
     caution: "bg-caution",
     critical: "bg-critical",
   }[tone];

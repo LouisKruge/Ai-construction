@@ -1,29 +1,31 @@
 import { engReviews, projects } from "@/lib/data";
 import { Badge, Card, CardHeader, Kpi, PageHeader, Table } from "@/components/ui";
 import StructuralCalculator from "@/components/StructuralCalculator";
+import StudioHero from "@/components/StudioHero";
 
 export default function EngineeringPage() {
   const issues = engReviews.reduce((s, r) => s + r.findings, 0);
   return (
     <>
-      <PageHeader
+      <StudioHero
         title="Engineering Studio"
-        subtitle="Live calculations, automated drawing review, compliance checks, and revision control."
+        subtitle="A digital engineering workstation — live limit-state design, automated drawing review, code compliance, and revision control."
+        motif="engineering"
+        status="Live · SANS / Eurocode"
+        kpis={[
+          { label: "Drawings in review", value: "2" },
+          { label: "Open findings", value: String(issues), tone: issues > 0 ? "caution" : "positive" },
+          { label: "Compliance checks", value: "128" },
+          { label: "Avg. review", value: "26 min", tone: "positive" },
+        ]}
         actions={
-          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
+          <button className="rounded-md bg-gradient-to-r from-accent to-accent-2 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-accent/25 transition hover:brightness-110">
             Upload drawings
           </button>
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Kpi label="Drawings in review" value="2" sub="across 2 projects" />
-        <Kpi label="Open findings" value={String(issues)} tone={issues > 0 ? "caution" : "positive"} sub="from automated review" />
-        <Kpi label="Compliance checks" value="128" sub="run this week · SANS / Eurocode" />
-        <Kpi label="Avg. review time" value="26 min" sub="vs ~3 days manual" tone="positive" />
-      </div>
-
-      <div className="mt-6">
+      <div>
         <StructuralCalculator />
       </div>
 

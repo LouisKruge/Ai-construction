@@ -1,48 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Atlas OS design tokens ─────────────────────────────────────────────
-     Monochrome dark surface scale with a single restrained accent.
-     Semantic status colors are desaturated for dark backgrounds and used
-     only where state genuinely matters. */
+  /* ── Atlas OS — premium enterprise design language ──────────────────────
+     Deep blue-tinted surfaces, layered elevation, glass, and a restrained
+     indigo→violet accent. Tuned to read as an expensive engineering
+     instrument, not a flat dashboard. */
 
-  /* Surfaces */
-  --color-base: #0a0c10; /* app background */
-  --color-surface: #10141b; /* cards, panels */
-  --color-raise: #171c26; /* hover, active surfaces */
-  --color-overlay: #1b212d; /* popovers, palette */
-  --color-edge: #1f2632; /* hairline borders */
-  --color-edge-strong: #2c3644;
+  /* Surfaces — navy-charcoal, each step a lift in elevation */
+  --color-base: #080b12; /* app background */
+  --color-surface: #0e131e; /* cards, panels */
+  --color-raise: #161d2c; /* hover, active */
+  --color-overlay: #1c2536; /* popovers, palette */
+  --color-edge: #212a3c; /* hairline borders */
+  --color-edge-strong: #303c54;
 
   /* Foreground */
-  --color-fg: #eef1f6;
-  --color-fg-muted: #98a2b3;
-  --color-fg-faint: #5d6675;
+  --color-fg: #eef2fb;
+  --color-fg-muted: #97a3bd;
+  --color-fg-faint: #5c6884;
 
-  /* Accent — used sparingly: primary actions, active states, key signals */
-  --color-accent: #e8842c;
-  --color-accent-hover: #f09a4b;
+  /* Accent — indigo→violet, used for primary actions, active state, AI */
+  --color-accent: #6d7cff;
+  --color-accent-hover: #8b97ff;
+  --color-accent-2: #a855f7; /* violet, for gradients/AI washes */
+  --color-accent-cyan: #38bdf8; /* technical edge highlight */
 
-  /* Status (dark-tuned) */
+  /* Status (blue-tuned) */
   --color-positive: #34d399;
   --color-caution: #fbbf24;
-  --color-critical: #f87171;
+  --color-critical: #fb7185;
   --color-info: #60a5fa;
 
-  /* Legacy ink scale — landing page + gradients */
-  --color-ink-950: #07090d;
-  --color-ink-900: #0b0f14;
-  --color-ink-800: #121821;
-  --color-ink-700: #1b2330;
+  /* Legacy ink/signal — landing page + gradients */
+  --color-ink-950: #05070c;
+  --color-ink-900: #0a0e16;
+  --color-ink-800: #121826;
+  --color-ink-700: #1b2331;
   --color-ink-600: #2a3547;
   --color-ink-400: #64748b;
   --color-ink-300: #94a3b8;
   --color-ink-100: #e2e8f0;
   --color-ink-50: #f6f8fa;
-
-  --color-signal-500: #e8842c;
-  --color-signal-400: #f09a4b;
-  --color-signal-600: #cf6f1a;
+  --color-signal-500: #6d7cff;
+  --color-signal-400: #8b97ff;
+  --color-signal-600: #5563e6;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -58,15 +59,98 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   font-variant-numeric: tabular-nums;
+  /* faint ambient wash so the whole app sits on depth, not a flat black */
+  background-color: var(--color-base);
+  background-image:
+    radial-gradient(900px 500px at 78% -8%, rgba(109, 124, 255, 0.1), transparent 60%),
+    radial-gradient(700px 500px at 10% 4%, rgba(168, 85, 247, 0.06), transparent 55%);
+  background-attachment: fixed;
 }
 
 ::selection {
   background: var(--color-accent);
-  color: #0a0c10;
+  color: #05070c;
 }
 
-/* Subtle scrollbars for the OS shell */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-edge-strong) transparent;
+}
+
+/* ── Depth utilities ──────────────────────────────────────────────────────
+   Composable premium surface treatments used across the component library. */
+
+/* Layered ambient + key shadow for floating panels */
+.elev {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 8px 24px -8px rgba(0, 0, 0, 0.55);
+}
+.elev-lg {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 24px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Glass — translucent panel with hairline top highlight and blur */
+.glass {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 40%),
+    color-mix(in srgb, var(--color-surface) 82%, transparent);
+  backdrop-filter: blur(12px) saturate(120%);
+  border: 1px solid var(--color-edge);
+}
+
+/* Subtle top sheen overlay for hero panels */
+.sheen {
+  position: relative;
+}
+.sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 30%);
+  pointer-events: none;
+}
+
+/* Faint CAD/blueprint grid background */
+.blueprint {
+  background-image:
+    linear-gradient(rgba(109, 124, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(109, 124, 255, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Hover elevation for interactive panels */
+.lift {
+  transition:
+    transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+.lift:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-edge-strong);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 10px 30px -10px rgba(0, 0, 0, 0.7);
+}
+
+/* Accent gradient text/fills */
+.accent-grad {
+  background: linear-gradient(120deg, var(--color-accent), var(--color-accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.live-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
 }
