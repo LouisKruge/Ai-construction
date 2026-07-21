@@ -8,9 +8,10 @@ export const navGroups: {
   items: { href: string; label: string; icon: string }[];
 }[] = [
   {
-    label: "",
+    label: "Command Center",
     items: [
-      { href: "/dashboard", label: "Command Center", icon: "◈" },
+      { href: "/dashboard", label: "Overview", icon: "▤" },
+      { href: "/map", label: "Live Map", icon: "◍" },
       { href: "/projects", label: "Projects", icon: "▦" },
       { href: "/intelligence", label: "AI Intelligence", icon: "◎" },
       { href: "/analytics", label: "Analytics", icon: "∿" },
@@ -32,6 +33,7 @@ export const navGroups: {
       { href: "/finance", label: "Finance", icon: "Σ" },
       { href: "/agents", label: "Workforce", icon: "⬢" },
       { href: "/schedule", label: "Schedule", icon: "▤" },
+      { href: "/quality", label: "Quality & Safety", icon: "✓" },
     ],
   },
   {
@@ -45,9 +47,8 @@ export const navGroups: {
   },
 ];
 
-// Modules reachable via ⌘K but not pinned in the photo's sidebar.
+// Modules reachable via ⌘K but not pinned in the sidebar.
 export const extraRoutes: { href: string; label: string }[] = [
-  { href: "/quality", label: "Quality" },
   { href: "/safety", label: "Safety" },
   { href: "/sales", label: "Sales" },
   { href: "/clients", label: "Clients" },
@@ -57,14 +58,17 @@ export default function Sidebar() {
   const pathname = usePathname();
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-edge bg-base/80 text-fg-muted backdrop-blur-xl">
-      <Link href="/" className="flex h-14 shrink-0 items-center gap-2.5 border-b border-edge px-5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent-2 shadow-lg shadow-accent/30">
-          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="white" strokeWidth="2" strokeLinejoin="round">
+      <Link href="/" className="flex h-16 shrink-0 items-center gap-2.5 border-b border-edge px-5">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-accent-2 shadow-lg shadow-accent/30">
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="white" strokeWidth="2" strokeLinejoin="round">
             <path d="M12 3 L21 8 L21 16 L12 21 L3 16 L3 8 Z" />
             <path d="M12 3 L12 21 M3 8 L21 16 M21 8 L3 16" strokeWidth="1" strokeOpacity="0.6" />
           </svg>
         </span>
-        <span className="text-[16px] font-bold tracking-[0.18em] text-fg">ATLAS</span>
+        <span className="leading-tight">
+          <span className="block text-[16px] font-bold tracking-[0.18em] text-fg">ATLAS</span>
+          <span className="block text-[9px] font-medium uppercase tracking-[0.22em] text-fg-faint">Enterprise OS</span>
+        </span>
       </Link>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4">
@@ -106,8 +110,20 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
-      <button className="flex items-center gap-3 border-t border-edge px-5 py-3.5 text-[13px] text-fg-faint transition hover:text-fg-muted">
-        <span className="w-4 text-center">‹</span>
+      <div className="border-t border-edge p-3">
+        <button className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 transition hover:bg-surface">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-2 text-[12px] font-semibold text-white ring-2 ring-surface">
+            SK
+          </span>
+          <span className="min-w-0 flex-1 text-left">
+            <span className="block truncate text-[13px] font-medium text-fg">Stefan K.</span>
+            <span className="block text-[11px] text-fg-faint">Project Director</span>
+          </span>
+          <span className="text-fg-faint">▾</span>
+        </button>
+      </div>
+      <button className="flex items-center gap-3 border-t border-edge px-5 py-3 text-[12px] text-fg-faint transition hover:text-fg-muted">
+        <span className="w-4 text-center">⇤</span>
         Collapse
       </button>
     </aside>
