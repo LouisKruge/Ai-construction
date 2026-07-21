@@ -390,3 +390,556 @@ export function rands(n: number): string {
   if (abs >= 1e3) return `${sign}R${(abs / 1e3).toFixed(0)}k`;
   return `${sign}R${abs.toFixed(0)}`;
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+//  EXPERT-GRADE ENGINES — limit-state design, CPM, EVM, tender adjudication.
+//  Formulae follow SANS 10160/10162 (steel) and SANS 10100/EN 1992 (concrete)
+//  conventions. Simplified where a full section-property database would be
+//  needed; every result is derived, none hardcoded.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ─── Limit-state actions (load combinations) ────────────────────────────────
+
+export interface Actions {
+  wUls: number; // kN/m, ultimate (1.2G + 1.6Q)
+  wSls: number; // kN/m, serviceability (1.0G + 1.0Q)
+  nUlsPerFloor: number; // kN, ultimate axial per floor per m² tributary basis
+}
+
+export function loadCombination(
+  deadKpa: number,
+  liveKpa: number,
+  spacing: number, // m — tributary width for a beam
+): Actions {
+  const wUls = (1.2 * deadKpa + 1.6 * liveKpa) * spacing;
+  const wSls = (1.0 * deadKpa + 1.0 * liveKpa) * spacing;
+  const nUlsPerFloor = 1.2 * deadKpa + 1.6 * liveKpa; // kN/m² factored
+  return { wUls, wSls, nUlsPerFloor };
+}
+
+// ─── Steel beam — three limit-state checks (bending, shear, deflection) ──────
+
+const GAMMA_M0 = 1.0;
+const GAMMA_M1 = 1.0;
+
+export interface LimitCheck {
+  name: string;
+  demand: string;
+  capacity: string;
+  utilisation: number; // 0..>1
+  pass: boolean;
+  code: string;
+}
+
+export interface BeamDesign {
+  wUls: number;
+  wSls: number;
+  moment: number; // kNm
+  shear: number; // kN
+  section: Section | null;
+  checks: LimitCheck[];
+  governing: string;
+  overallUtil: number;
+  tonnage: number;
+  pass: boolean;
+}
+
+// Approximate cross-sectional & shear area from mass (A = m/(ρ)); Av ≈ 0.5A.
+function steelAreas(mass: number) {
+  const A_cm2 = mass * 1.2739; // kg/m ÷ 7.85 g/cm³ ×10
+  const Av_cm2 = 0.5 * A_cm2; // indicative web shear area
+  return { A_cm2, Av_cm2 };
+}
+
+export function designSteelBeam(
+  a: Actions,
+  span: number,
+  count: number,
+  deflRatio = 360,
+): BeamDesign {
+  const L = span;
+  const moment = (a.wUls * L * L) / 8; // kNm
+  const shear = (a.wUls * L) / 2; // kN
+  const Lmm = L * 1000;
+  const deflLimit = Lmm / deflRatio;
+
+  const capacity = (s: Section) => {
+    const Mrd = (s.wpl * 1000 * FY) / 1e6 / GAMMA_M0; // kNm
+    const { Av_cm2 } = steelAreas(s.mass);
+    const Vrd = (Av_cm2 * 100 * (FY / Math.sqrt(3))) / 1e3 / GAMMA_M0; // kN
+    const defl = (5 * a.wSls * Lmm ** 4) / (384 * E * s.ixx * 1e4); // mm, SLS
+    return { Mrd, Vrd, defl };
+  };
+
+  let section: Section | null = null;
+  for (const s of [...ubSections].sort((x, y) => x.mass - y.mass)) {
+    const c = capacity(s);
+    if (moment <= c.Mrd && shear <= c.Vrd && c.defl <= deflLimit) {
+      section = s;
+      break;
+    }
+  }
+  const s = section ?? ubSections[ubSections.length - 1];
+  const c = capacity(s);
+
+  const checks: LimitCheck[] = [
+    {
+      name: "Bending (ULS)",
+      demand: `M_Ed ${moment.toFixed(0)} kNm`,
+      capacity: `M_Rd ${c.Mrd.toFixed(0)} kNm`,
+      utilisation: moment / c.Mrd,
+      pass: moment <= c.Mrd,
+      code: "SANS 10162-1 cl.13.5",
+    },
+    {
+      name: "Shear (ULS)",
+      demand: `V_Ed ${shear.toFixed(0)} kN`,
+      capacity: `V_Rd ${c.Vrd.toFixed(0)} kN`,
+      utilisation: shear / c.Vrd,
+      pass: shear <= c.Vrd,
+      code: "SANS 10162-1 cl.13.4",
+    },
+    {
+      name: "Deflection (SLS)",
+      demand: `δ ${c.defl.toFixed(1)} mm`,
+      capacity: `δ_lim L/${deflRatio} = ${deflLimit.toFixed(1)} mm`,
+      utilisation: c.defl / deflLimit,
+      pass: c.defl <= deflLimit,
+      code: "SANS 10160-1 Table 3",
+    },
+  ];
+  const overallUtil = Math.max(...checks.map((k) => k.utilisation));
+  const governing = checks.reduce((a2, b) => (b.utilisation > a2.utilisation ? b : a2)).name;
+  const tonnage = (s.mass * L * count) / 1000;
+
+  return {
+    wUls: a.wUls,
+    wSls: a.wSls,
+    moment,
+    shear,
+    section,
+    checks,
+    governing,
+    overallUtil,
+    tonnage,
+    pass: section !== null,
+  };
+}
+
+// ─── Steel column — flexural buckling (EN 1993 curve b) ──────────────────────
+
+export interface Ucsection {
+  name: string;
+  mass: number; // kg/m
+  area: number; // cm²
+  iMin: number; // radius of gyration, cm (minor axis)
+}
+
+export const ucSections: Ucsection[] = [
+  { name: "152×152×23 UC", mass: 23.4, area: 29.8, iMin: 3.7 },
+  { name: "203×203×46 UC", mass: 46.1, area: 58.7, iMin: 5.13 },
+  { name: "203×203×60 UC", mass: 60.0, area: 76.4, iMin: 5.2 },
+  { name: "254×254×73 UC", mass: 73.1, area: 93.1, iMin: 6.48 },
+  { name: "254×254×89 UC", mass: 88.9, area: 113, iMin: 6.55 },
+  { name: "305×305×97 UC", mass: 96.9, area: 123, iMin: 7.69 },
+  { name: "305×305×137 UC", mass: 137, area: 174, iMin: 7.83 },
+  { name: "356×368×153 UC", mass: 153, area: 195, iMin: 9.49 },
+];
+
+export interface ColumnDesign {
+  nEd: number; // kN
+  effLength: number; // m
+  section: Ucsection | null;
+  slenderness: number; // λ̄ non-dimensional
+  chi: number; // buckling reduction
+  nbRd: number; // kN
+  utilisation: number;
+  pass: boolean;
+}
+
+export function designSteelColumn(
+  nEd: number, // kN, factored axial
+  height: number, // m
+  effLengthFactor = 1.0,
+): ColumnDesign {
+  const Le = height * effLengthFactor;
+  const lambda1 = Math.PI * Math.sqrt(E / FY); // 93.9ε
+  const pick = (u: Ucsection) => {
+    const A_mm2 = u.area * 100;
+    const i_mm = u.iMin * 10;
+    const lambda = (Le * 1000) / i_mm;
+    const lambdaBar = lambda / lambda1;
+    const alpha = 0.34; // curve b
+    const phi = 0.5 * (1 + alpha * (lambdaBar - 0.2) + lambdaBar * lambdaBar);
+    const chi = Math.min(1, 1 / (phi + Math.sqrt(Math.max(phi * phi - lambdaBar * lambdaBar, 0))));
+    const nbRd = (chi * A_mm2 * FY) / 1e3 / GAMMA_M1; // kN
+    return { lambdaBar, chi, nbRd };
+  };
+  let section: Ucsection | null = null;
+  let r = { lambdaBar: 0, chi: 0, nbRd: 0 };
+  for (const u of [...ucSections].sort((x, y) => x.mass - y.mass)) {
+    r = pick(u);
+    if (nEd <= r.nbRd) {
+      section = u;
+      break;
+    }
+  }
+  const u = section ?? ucSections[ucSections.length - 1];
+  if (!section) r = pick(u);
+  return {
+    nEd,
+    effLength: Le,
+    section,
+    slenderness: r.lambdaBar,
+    chi: r.chi,
+    nbRd: r.nbRd,
+    utilisation: nEd / r.nbRd,
+    pass: section !== null,
+  };
+}
+
+// ─── Reinforced-concrete beam (EN 1992-1-1 / SANS 10100) ─────────────────────
+
+const BAR_SIZES = [12, 16, 20, 25, 32]; // mm
+const barArea = (d: number) => (Math.PI / 4) * d * d; // mm²
+const barMassPerM = (d: number) => 0.006165 * d * d; // kg/m (ρ=7850)
+
+export interface RcBeamDesign {
+  b: number;
+  h: number;
+  d: number; // effective depth mm
+  moment: number; // kNm
+  shear: number; // kN
+  k: number;
+  leverArm: number; // z, mm
+  asReq: number; // mm²
+  bars: { count: number; dia: number; asProv: number };
+  linkDia: number;
+  linkSpacing: number; // mm
+  concreteVol: number; // m³
+  rebarMass: number; // kg
+  singlyReinforced: boolean;
+  utilisation: number;
+}
+
+export function designRcBeam(
+  a: Actions,
+  span: number,
+  count: number,
+  b = 300,
+  h = 600,
+  fck = 30,
+  fyk = 450,
+  cover = 40,
+): RcBeamDesign {
+  const L = span;
+  const moment = (a.wUls * L * L) / 8; // kNm
+  const shear = (a.wUls * L) / 2; // kN
+  const assumedBar = 25;
+  const d = h - cover - 10 - assumedBar / 2; // link 10mm assumed
+  const Med = moment * 1e6; // Nmm
+  const k = Med / (b * d * d * fck);
+  const singly = k <= 0.167;
+  const z = Math.min(0.95 * d, d * (0.5 + Math.sqrt(Math.max(0.25 - k / 1.134, 0))));
+  const asReq = Med / (0.87 * fyk * z); // mm²
+
+  // choose bar arrangement: smallest (dia,count) with As_prov ≥ As_req, count 2..8
+  let best = { count: 8, dia: 32, asProv: 8 * barArea(32) };
+  for (const dia of BAR_SIZES) {
+    for (let n = 2; n <= 8; n++) {
+      const asProv = n * barArea(dia);
+      if (asProv >= asReq) {
+        if (asProv < best.asProv) best = { count: n, dia, asProv };
+        break;
+      }
+    }
+  }
+
+  // shear links (vertical stirrups, simplified variable-strut θ=22°→cotθ=2.5)
+  const cotTheta = 2.5;
+  const linkDia = 10;
+  const Asw = 2 * barArea(linkDia); // 2-leg
+  const sReq = (Asw * 0.87 * fyk * (d * 0.9) * cotTheta) / (shear * 1e3); // mm
+  const linkSpacing = Math.max(75, Math.round(Math.min(0.75 * d, sReq) / 25) * 25);
+
+  const concreteVol = (b / 1000) * (h / 1000) * L * count;
+  const mainMass = best.count * barMassPerM(best.dia) * L;
+  const linkPerimeter = (2 * (b - 2 * cover) + 2 * (h - 2 * cover)) / 1000; // m
+  const linkCount = Math.ceil((L * 1000) / linkSpacing);
+  const linkMass = linkCount * linkPerimeter * barMassPerM(linkDia);
+  const rebarMass = (mainMass + linkMass) * count;
+
+  return {
+    b,
+    h,
+    d,
+    moment,
+    shear,
+    k,
+    leverArm: z,
+    asReq,
+    bars: best,
+    linkDia,
+    linkSpacing,
+    concreteVol,
+    rebarMass,
+    singlyReinforced: singly,
+    utilisation: asReq / best.asProv,
+  };
+}
+
+// ─── Bar bending schedule (BS 8666 style) ────────────────────────────────────
+
+export interface BarLine {
+  mark: string;
+  type: string;
+  dia: number;
+  shape: string;
+  count: number;
+  lengthEach: number; // mm
+  totalLength: number; // m
+  mass: number; // kg
+}
+
+export function barSchedule(rc: RcBeamDesign, span: number): BarLine[] {
+  const L = span * 1000;
+  const anchorage = 40; // ×dia laps/hooks factor per side
+  // Bottom main bars — shape 00 (straight) with end anchorage
+  const mainLen = Math.round(L + 2 * anchorage * rc.bars.dia);
+  const main: BarLine = {
+    mark: "01",
+    type: "Bottom main",
+    dia: rc.bars.dia,
+    shape: "00 (straight)",
+    count: rc.bars.count,
+    lengthEach: mainLen,
+    totalLength: (mainLen * rc.bars.count) / 1000,
+    mass: barMassPerM(rc.bars.dia) * (mainLen / 1000) * rc.bars.count,
+  };
+  // Top hanger bars — 2×dia16 nominal
+  const topLen = Math.round(L + 2 * anchorage * 16);
+  const top: BarLine = {
+    mark: "02",
+    type: "Top hangers",
+    dia: 16,
+    shape: "00 (straight)",
+    count: 2,
+    lengthEach: topLen,
+    totalLength: (topLen * 2) / 1000,
+    mass: barMassPerM(16) * (topLen / 1000) * 2,
+  };
+  // Links — shape 51 (closed rectangle)
+  const linkCount = Math.ceil(L / rc.linkSpacing);
+  const linkLen = Math.round(2 * (rc.b - 80) + 2 * (rc.h - 80) + 2 * 75); // + hooks
+  const links: BarLine = {
+    mark: "03",
+    type: `Links @ ${rc.linkSpacing}mm`,
+    dia: rc.linkDia,
+    shape: "51 (closed link)",
+    count: linkCount,
+    lengthEach: linkLen,
+    totalLength: (linkLen * linkCount) / 1000,
+    mass: barMassPerM(rc.linkDia) * (linkLen / 1000) * linkCount,
+  };
+  return [main, top, links];
+}
+
+// ─── Critical Path Method (CPM) ──────────────────────────────────────────────
+
+export interface Activity {
+  id: string;
+  name: string;
+  duration: number; // days
+  preds: string[];
+}
+
+export interface CpmActivity extends Activity {
+  es: number;
+  ef: number;
+  ls: number;
+  lf: number;
+  totalFloat: number;
+  critical: boolean;
+}
+
+export interface CpmResult {
+  activities: CpmActivity[];
+  projectDuration: number;
+  criticalPath: string[];
+}
+
+export function cpm(net: Activity[]): CpmResult {
+  const byId = new Map(net.map((a) => [a.id, a]));
+  const es = new Map<string, number>();
+  const ef = new Map<string, number>();
+  // forward pass (topological by resolving preds)
+  const resolve = (id: string): number => {
+    if (ef.has(id)) return ef.get(id)!;
+    const a = byId.get(id)!;
+    const start = a.preds.length ? Math.max(...a.preds.map((p) => resolve(p))) : 0;
+    es.set(id, start);
+    ef.set(id, start + a.duration);
+    return ef.get(id)!;
+  };
+  net.forEach((a) => resolve(a.id));
+  const projectDuration = Math.max(...net.map((a) => ef.get(a.id)!));
+
+  // successors
+  const succs = new Map<string, string[]>();
+  net.forEach((a) => a.preds.forEach((p) => succs.set(p, [...(succs.get(p) ?? []), a.id])));
+
+  const lf = new Map<string, number>();
+  const ls = new Map<string, number>();
+  const back = (id: string): number => {
+    if (ls.has(id)) return ls.get(id)!;
+    const a = byId.get(id)!;
+    const s = succs.get(id) ?? [];
+    const finish = s.length ? Math.min(...s.map((x) => back(x))) : projectDuration;
+    lf.set(id, finish);
+    ls.set(id, finish - a.duration);
+    return ls.get(id)!;
+  };
+  net.forEach((a) => back(a.id));
+
+  const activities: CpmActivity[] = net.map((a) => {
+    const tf = ls.get(a.id)! - es.get(a.id)!;
+    return {
+      ...a,
+      es: es.get(a.id)!,
+      ef: ef.get(a.id)!,
+      ls: ls.get(a.id)!,
+      lf: lf.get(a.id)!,
+      totalFloat: tf,
+      critical: tf === 0,
+    };
+  });
+  const criticalPath = activities.filter((a) => a.critical).map((a) => a.id);
+  return { activities, projectDuration, criticalPath };
+}
+
+// ─── Earned Value Management (EVM) ───────────────────────────────────────────
+
+export interface EvmResult {
+  pv: number; // planned value
+  ev: number; // earned value
+  ac: number; // actual cost
+  cv: number; // cost variance
+  sv: number; // schedule variance
+  cpi: number;
+  spi: number;
+  eac: number; // estimate at completion
+  etc: number; // estimate to complete
+  vac: number; // variance at completion
+  tcpi: number; // to-complete performance index
+}
+
+export function evm(p: {
+  bac: number; // budget at completion
+  plannedPct: number; // 0..1
+  actualPct: number; // 0..1 (physical % complete)
+  actualCost: number;
+}): EvmResult {
+  const pv = p.bac * p.plannedPct;
+  const ev = p.bac * p.actualPct;
+  const ac = p.actualCost;
+  const cpi = ac > 0 ? ev / ac : 1;
+  const spi = pv > 0 ? ev / pv : 1;
+  const eac = cpi > 0 ? p.bac / cpi : p.bac;
+  return {
+    pv,
+    ev,
+    ac,
+    cv: ev - ac,
+    sv: ev - pv,
+    cpi,
+    spi,
+    eac,
+    etc: eac - ac,
+    vac: p.bac - eac,
+    tcpi: p.bac - ac !== 0 ? (p.bac - ev) / (p.bac - ac) : 1,
+  };
+}
+
+// ─── Weighted tender adjudication ────────────────────────────────────────────
+
+export interface Bidder {
+  name: string;
+  price: number; // R (lower better)
+  leadWeeks: number; // lower better
+  quality: number; // /5 higher better
+  compliance: number; // % higher better
+  bbbee: number; // level 1..8 (lower better)
+}
+
+export interface BidWeights {
+  price: number;
+  lead: number;
+  quality: number;
+  compliance: number;
+  bbbee: number;
+}
+
+export interface BidScore {
+  name: string;
+  price: number;
+  scores: { price: number; lead: number; quality: number; compliance: number; bbbee: number };
+  total: number;
+  rank: number;
+}
+
+export function adjudicate(bidders: Bidder[], w: BidWeights): BidScore[] {
+  const minPrice = Math.min(...bidders.map((b) => b.price));
+  const minLead = Math.min(...bidders.map((b) => b.leadWeeks));
+  const norm = bidders.map((b) => {
+    const price = (minPrice / b.price) * 100; // lowest price = 100
+    const lead = (minLead / b.leadWeeks) * 100;
+    const quality = (b.quality / 5) * 100;
+    const compliance = b.compliance;
+    const bbbee = ((9 - b.bbbee) / 8) * 100; // level 1 → 100
+    const total =
+      (price * w.price + lead * w.lead + quality * w.quality + compliance * w.compliance + bbbee * w.bbbee) /
+      (w.price + w.lead + w.quality + w.compliance + w.bbbee);
+    return { name: b.name, price: b.price, scores: { price, lead, quality, compliance, bbbee }, total };
+  });
+  return norm
+    .sort((a, b) => b.total - a.total)
+    .map((b, i) => ({ ...b, rank: i + 1 }));
+}
+
+// ─── Economic Order Quantity (Wilson) ────────────────────────────────────────
+
+export interface EoqResult {
+  eoq: number; // units
+  ordersPerYear: number;
+  cycleDays: number;
+  reorderPoint: number; // units
+  safetyStock: number;
+  annualOrderingCost: number;
+  annualHoldingCost: number;
+  totalAnnualCost: number;
+}
+
+export function eoq(p: {
+  annualDemand: number; // units/yr
+  orderingCost: number; // R/order
+  holdingCost: number; // R/unit/yr
+  leadDays: number;
+  serviceZ: number; // safety factor (e.g. 1.65 = 95%)
+  demandStd: number; // daily demand std (units)
+}): EoqResult {
+  const Q = Math.sqrt((2 * p.annualDemand * p.orderingCost) / p.holdingCost);
+  const daily = p.annualDemand / 365;
+  const safetyStock = p.serviceZ * p.demandStd * Math.sqrt(p.leadDays);
+  const reorderPoint = daily * p.leadDays + safetyStock;
+  const ordersPerYear = p.annualDemand / Q;
+  return {
+    eoq: Q,
+    ordersPerYear,
+    cycleDays: 365 / ordersPerYear,
+    reorderPoint,
+    safetyStock,
+    annualOrderingCost: ordersPerYear * p.orderingCost,
+    annualHoldingCost: (Q / 2) * p.holdingCost,
+    totalAnnualCost: ordersPerYear * p.orderingCost + (Q / 2) * p.holdingCost,
+  };
+}

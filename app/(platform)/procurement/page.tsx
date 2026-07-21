@@ -1,6 +1,8 @@
 import { fmt, projects, rfqs, suppliers } from "@/lib/data";
 import { Badge, Card, CardHeader, Kpi, PageHeader, Table } from "@/components/ui";
 import ProcurementSim from "@/components/ProcurementSim";
+import BidAdjudication from "@/components/BidAdjudication";
+import EoqPanel from "@/components/EoqPanel";
 
 export default function ProcurementPage() {
   return (
@@ -74,6 +76,10 @@ export default function ProcurementPage() {
           ))}
         </Table>
       </Card>
+
+      <BidAdjudication />
+
+      <EoqPanel />
 
       <ProcurementSim />
     </>

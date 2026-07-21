@@ -1,5 +1,7 @@
 import { projects, schedule } from "@/lib/data";
 import { Card, CardHeader, Kpi, PageHeader, Progress, Table } from "@/components/ui";
+import CriticalPath from "@/components/CriticalPath";
+import EvmPanel from "@/components/EvmPanel";
 
 export default function ConstructionPage() {
   const critical = schedule.filter((s) => s.critical);
@@ -7,7 +9,7 @@ export default function ConstructionPage() {
     <>
       <PageHeader
         title="Construction Studio"
-        subtitle="Programmes, critical path, and live site progress."
+        subtitle="Critical-path programming, earned-value controls, and live site progress."
       />
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -15,6 +17,14 @@ export default function ConstructionPage() {
         <Kpi label="Schedule variance" value="-4.2 days" sub="portfolio weighted average" tone="caution" />
         <Kpi label="Workforce on site" value="1,384" sub="across 4 active sites" />
         <Kpi label="Safety incidents (30d)" value="0" sub="LTIFR 0.00" tone="positive" />
+      </div>
+
+      <div className="mt-6">
+        <CriticalPath />
+      </div>
+
+      <div className="mt-6">
+        <EvmPanel />
       </div>
 
       <Card className="mt-6">

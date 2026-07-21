@@ -4,6 +4,7 @@ import { drawingJobs } from "@/lib/workforce";
 import { Badge, Card, CardHeader, Kpi, PageHeader, Progress, Table } from "@/components/ui";
 import DrawingPreview from "@/components/DrawingPreview";
 import DrawingGenerator from "@/components/DrawingGenerator";
+import RebarDetail from "@/components/RebarDetail";
 
 const drawingStatusTone: Record<string, string> = {
   "Approved & issued": "text-positive",
@@ -44,6 +45,11 @@ export default function DesignPage() {
       {/* Live parametric generator */}
       <div className="mt-6">
         <DrawingGenerator />
+      </div>
+
+      {/* Reinforcement detailing + bar bending schedule */}
+      <div className="mt-6">
+        <RebarDetail />
       </div>
 
       {/* Generative drawing queue */}

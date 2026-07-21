@@ -705,6 +705,44 @@ export const assets: AssetRecord[] = [
   { name: "Epping Cold Store", sector: "Industrial & logistics", commissioned: "2020-02", condition: 79, nextMaintenance: "2026-08-03 — ammonia plant inspection", openWorkOrders: 4, energyTrend: "+6% YoY ⚠" },
 ];
 
+// ─── Programme network (drives the CPM engine) ──────────────────────────────
+
+export interface NetworkActivity {
+  id: string;
+  name: string;
+  duration: number; // days
+  preds: string[];
+}
+
+// Superstructure package for Sandton Gate, as a precedence network.
+export const programmeNetwork: NetworkActivity[] = [
+  { id: "A", name: "Transfer level formwork", duration: 12, preds: [] },
+  { id: "B", name: "Transfer level rebar fix", duration: 8, preds: ["A"] },
+  { id: "C", name: "Transfer slab pour + cure", duration: 10, preds: ["B"] },
+  { id: "D", name: "Core jump-form L18–L26", duration: 34, preds: ["C"] },
+  { id: "E", name: "Steel columns L18–L24", duration: 18, preds: ["C"] },
+  { id: "F", name: "Metal deck + pour L18–L24", duration: 22, preds: ["E"] },
+  { id: "G", name: "Curtain wall install L18–L24", duration: 26, preds: ["D", "F"] },
+  { id: "H", name: "MEP first fix L18–L24", duration: 20, preds: ["F"] },
+  { id: "I", name: "Fit-out + close-out", duration: 24, preds: ["G", "H"] },
+];
+
+// EVM basis per active project: budget, planned %, physical %, actual cost.
+export interface EvmBasis {
+  project: string;
+  bac: number;
+  plannedPct: number;
+  actualPct: number;
+  actualCost: number;
+}
+
+export const evmBasis: EvmBasis[] = [
+  { project: "PRJ-0142", bac: 486_000_000, plannedPct: 0.61, actualPct: 0.54, actualCost: 268_400_000 },
+  { project: "PRJ-0151", bac: 912_000_000, plannedPct: 0.57, actualPct: 0.58, actualCost: 512_300_000 },
+  { project: "PRJ-0170", bac: 356_000_000, plannedPct: 0.32, actualPct: 0.33, actualCost: 121_700_000 },
+  { project: "PRJ-0158", bac: 238_000_000, plannedPct: 0.15, actualPct: 0.07, actualCost: 18_200_000 },
+];
+
 export const fmt = {
   zar(n: number): string {
     if (n >= 1_000_000_000) return `R${(n / 1_000_000_000).toFixed(2)}bn`;
