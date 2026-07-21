@@ -10,16 +10,22 @@ interface Command {
   group: string;
   label: string;
   hint?: string;
-  href: string;
+  href?: string;
+  ask?: string; // when set, opens the Atlas assistant with this question
 }
 
 const aiActions: Command[] = [
-  { id: "ai-1", group: "AI actions", label: "Why is Sandton Gate behind schedule?", hint: "Delay Predictor", href: "/projects/PRJ-0142" },
-  { id: "ai-2", group: "AI actions", label: "Generate weekly client reports", hint: "Client Success AI", href: "/clients" },
-  { id: "ai-3", group: "AI actions", label: "Benchmark open RFQs against market", hint: "Procurement AI", href: "/procurement" },
-  { id: "ai-4", group: "AI actions", label: "Run compliance check on latest drawings", hint: "Compliance AI", href: "/engineering" },
-  { id: "ai-5", group: "AI actions", label: "Simulate cashflow for next quarter", hint: "CFO AI", href: "/finance" },
+  { id: "ai-1", group: "Ask Atlas", label: "Why is Sandton Gate behind schedule?", hint: "portfolio", ask: "Why is Sandton Gate behind schedule?" },
+  { id: "ai-2", group: "Ask Atlas", label: "Which projects are most at risk?", hint: "portfolio", ask: "Which projects are most at risk, and why?" },
+  { id: "ai-3", group: "Ask Atlas", label: "Where are we over benchmark on procurement?", hint: "procurement", ask: "Where are we over benchmark on procurement?" },
+  { id: "ai-4", group: "Ask Atlas", label: "Summarise the War Room for the board", hint: "executive", ask: "Summarise this morning's War Room briefing for the board." },
 ];
+
+function askAtlas(question: string) {
+  window.dispatchEvent(new Event("atlas:assistant"));
+  // let the drawer mount before it listens for the question
+  setTimeout(() => window.dispatchEvent(new CustomEvent("atlas:ask", { detail: question })), 60);
+}
 
 const commands: Command[] = [
   ...navGroups.flatMap((g) =>
@@ -62,14 +68,24 @@ export default function CommandPalette() {
   const router = useRouter();
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const raw = query.trim();
+    const q = raw.toLowerCase();
     if (!q) return commands;
-    return commands.filter(
+    const matches = commands.filter(
       (c) =>
         c.label.toLowerCase().includes(q) ||
         c.hint?.toLowerCase().includes(q) ||
         c.group.toLowerCase().includes(q),
     );
+    // Always offer to ask the assistant the raw query.
+    const askItem: Command = {
+      id: "ask-freeform",
+      group: "Ask Atlas",
+      label: `Ask Atlas: “${raw}”`,
+      hint: "opus-4.8",
+      ask: raw,
+    };
+    return [askItem, ...matches];
   }, [query]);
 
   const close = useCallback(() => {
@@ -82,7 +98,11 @@ export default function CommandPalette() {
     (cmd: Command | undefined) => {
       if (!cmd) return;
       close();
-      router.push(cmd.href);
+      if (cmd.ask) {
+        askAtlas(cmd.ask);
+      } else if (cmd.href) {
+        router.push(cmd.href);
+      }
     },
     [close, router],
   );

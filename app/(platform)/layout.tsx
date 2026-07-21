@@ -1,5 +1,6 @@
 import Sidebar from "@/components/Sidebar";
 import CommandPalette, { PaletteTrigger } from "@/components/CommandPalette";
+import Assistant, { AssistantTrigger } from "@/components/Assistant";
 
 export default function PlatformLayout({
   children,
@@ -8,10 +9,12 @@ export default function PlatformLayout({
     <div className="min-h-screen bg-base text-fg">
       <Sidebar />
       <CommandPalette />
+      <Assistant />
       <div className="pl-60">
         <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-edge bg-base/85 px-8 backdrop-blur">
           <PaletteTrigger />
           <div className="flex items-center gap-4 text-xs text-fg-faint">
+            <AssistantTrigger />
             <span className="hidden items-center gap-1.5 md:flex">
               <span className="h-1.5 w-1.5 rounded-full bg-positive" />
               All agents operational

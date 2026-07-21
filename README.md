@@ -18,9 +18,31 @@ All modules currently run on a shared mock data layer (`lib/data.ts`) that stand
 
 ```bash
 npm install
-npm run dev       # http://localhost:3000
-npm run build     # production build
+cp .env.example .env.local   # add your ANTHROPIC_API_KEY to enable the assistant
+npm run dev                  # http://localhost:3000
+npm run build                # production build
 ```
+
+## The Atlas assistant (real AI)
+
+The **Ask Atlas** button in the platform top bar (and the command palette's
+"Ask Atlas" actions) open a chat assistant powered by a real Claude model
+(`claude-opus-4-8`), served from a Next.js route handler at
+`app/api/atlas/route.ts`.
+
+- The API key is held **server-side only** — it never reaches the browser.
+- The assistant answers over the platform's live project data: `lib/context.ts`
+  assembles the portfolio, agent insights, procurement, suppliers, and the
+  War Room briefing into the system prompt, so answers stay grounded in real
+  records rather than invented facts.
+- Responses stream token-by-token.
+- **Without `ANTHROPIC_API_KEY` set**, the platform still runs — the assistant
+  returns a setup notice instead of live answers.
+
+To enable it:
+- **Local:** put `ANTHROPIC_API_KEY=...` in `.env.local`.
+- **Vercel:** add `ANTHROPIC_API_KEY` under Project → Settings → Environment
+  Variables, then redeploy.
 
 ## Structure
 
