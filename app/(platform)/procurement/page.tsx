@@ -1,5 +1,7 @@
 import { fmt, projects, rfqs, suppliers } from "@/lib/data";
+import { procIntel } from "@/lib/workforce";
 import { Badge, Card, CardHeader, Kpi, PageHeader, Table } from "@/components/ui";
+import ScenarioEngine from "@/components/ScenarioEngine";
 
 export default function ProcurementPage() {
   return (
@@ -73,6 +75,13 @@ export default function ProcurementPage() {
           ))}
         </Table>
       </Card>
+
+      <ScenarioEngine
+        title="Market Intelligence & Negotiation Engine"
+        note="Continuous commodity, currency, supplier, and logistics monitoring — proactive, evidence-backed"
+        scenarios={procIntel}
+        prompt="Should we lock in copper pricing now or wait for the next contract window?"
+      />
     </>
   );
 }

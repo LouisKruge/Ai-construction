@@ -1,5 +1,7 @@
 import { projects, workOrders } from "@/lib/data";
+import { mfgScenarios } from "@/lib/workforce";
 import { Badge, Card, CardHeader, Kpi, PageHeader, Progress, Table } from "@/components/ui";
+import ScenarioEngine from "@/components/ScenarioEngine";
 
 export default function ManufacturingPage() {
   return (
@@ -44,6 +46,13 @@ export default function ManufacturingPage() {
           ))}
         </Table>
       </Card>
+
+      <ScenarioEngine
+        title="Manufacturing Simulation Engine"
+        note="Model production changes before committing resources — grounded in factory data, reviewed by humans"
+        scenarios={mfgScenarios}
+        prompt="What if we move the transfer-steel package to Karoo Precast and add a weekend shift?"
+      />
     </>
   );
 }
