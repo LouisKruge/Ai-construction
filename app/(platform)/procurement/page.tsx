@@ -1,28 +1,31 @@
 import { fmt, projects, rfqs, suppliers } from "@/lib/data";
-import { Badge, Card, CardHeader, Kpi, PageHeader, Table } from "@/components/ui";
+import { Badge, Card, CardHeader, Table } from "@/components/ui";
 import ProcurementSim from "@/components/ProcurementSim";
 import BidAdjudication from "@/components/BidAdjudication";
 import EoqPanel from "@/components/EoqPanel";
+import StudioHero from "@/components/StudioHero";
 
 export default function ProcurementPage() {
+  const spendYtd = suppliers.reduce((s, x) => s + x.spendYtd, 0);
   return (
     <>
-      <PageHeader
+      <StudioHero
         title="Procurement Studio"
-        subtitle="RFQs, supplier intelligence, and benchmark-driven awards."
+        subtitle="A live sourcing desk — RFQs, supplier intelligence, and benchmark-driven awards adjudicated on price, quality, and delivery."
+        motif="procurement"
+        status="Live · 5 key suppliers"
+        kpis={[
+          { label: "Open RFQs", value: "2" },
+          { label: "Spend YTD", value: fmt.zar(spendYtd) },
+          { label: "Benchmark savings", value: "R6.1m", tone: "positive" },
+          { label: "Deliveries at risk", value: "1", tone: "caution" },
+        ]}
         actions={
-          <button className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover">
+          <button className="rounded-md bg-gradient-to-r from-accent to-accent-2 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-accent/25 transition hover:brightness-110">
             + New RFQ
           </button>
         }
       />
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <Kpi label="Open RFQs" value="2" sub="11 quotes received" />
-        <Kpi label="Spend YTD" value={fmt.zar(suppliers.reduce((s, x) => s + x.spendYtd, 0))} sub="across 5 key suppliers" />
-        <Kpi label="Benchmark savings" value="R6.1m" sub="captured this quarter" tone="positive" />
-        <Kpi label="Deliveries at risk" value="1" sub="Meridian Façades · curtain wall" tone="caution" />
-      </div>
 
       <Card className="mt-6">
         <CardHeader title="Requests for quotation" right={<span className="text-xs text-fg-faint">Lowest quote vs platform benchmark</span>} />

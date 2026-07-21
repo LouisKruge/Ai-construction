@@ -1,22 +1,24 @@
 import { cashflow, fmt, projects } from "@/lib/data";
-import { Card, CardHeader, Kpi, PageHeader, Table } from "@/components/ui";
+import { Card, CardHeader, Table } from "@/components/ui";
 import FinanceSim from "@/components/FinanceSim";
+import StudioHero from "@/components/StudioHero";
 
 export default function FinancePage() {
   const maxFlow = Math.max(...cashflow.flatMap((m) => [m.inflow, m.outflow]));
   return (
     <>
-      <PageHeader
+      <StudioHero
         title="Finance Studio"
-        subtitle="Cashflow, margins, and valuations from the same data the site runs on."
+        subtitle="A live treasury cockpit — cashflow, margins, and valuations drawn from the same data the site runs on."
+        motif="finance"
+        status="Live · group consolidated"
+        kpis={[
+          { label: "Net cash position", value: "R212m" },
+          { label: "6-month net flow", value: "+R51m", tone: "positive" },
+          { label: "Certificates pending", value: "R94m", tone: "caution" },
+          { label: "Cash cover", value: "1.7×", tone: "caution" },
+        ]}
       />
-
-      <div className="grid gap-4 md:grid-cols-4">
-        <Kpi label="Net cash position" value="R212m" sub="group, month-end" />
-        <Kpi label="6-month net flow" value="+R51m" sub="projected" tone="positive" />
-        <Kpi label="Certificates pending" value="R94m" sub="3 valuations awaiting sign-off" tone="caution" />
-        <Kpi label="Cash cover" value="1.7×" sub="policy floor 1.6× · Oct at risk" tone="caution" />
-      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>

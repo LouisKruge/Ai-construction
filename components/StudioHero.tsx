@@ -48,6 +48,25 @@ const motifs: Record<string, ReactNode> = {
       <line x1="50" y1="50" x2="150" y2="50" strokeOpacity="0.3" />
     </g>
   ),
+  procurement: (
+    <g stroke="var(--color-accent)" strokeOpacity="0.5" fill="none" strokeWidth="1">
+      {/* comparative bid bars against a benchmark line */}
+      {[0, 1, 2, 3].map((i) => (
+        <rect key={i} x={30 + i * 34} y={70 - [40, 28, 34, 22][i]} width="18" height={[40, 28, 34, 22][i]} rx="2" strokeOpacity="0.45" />
+      ))}
+      <line x1="18" y1="42" x2="182" y2="42" strokeDasharray="4 3" strokeOpacity="0.7" />
+    </g>
+  ),
+  finance: (
+    <g stroke="var(--color-accent)" strokeOpacity="0.5" fill="none" strokeWidth="1">
+      {/* cashflow curve with a fill hint */}
+      <path d="M15 75 L55 55 L95 62 L135 32 L185 20" strokeOpacity="0.7" strokeWidth="1.5" />
+      {[[15, 75], [55, 55], [95, 62], [135, 32], [185, 20]].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="2.5" fill="var(--color-accent)" fillOpacity="0.5" stroke="none" />
+      ))}
+      <line x1="15" y1="90" x2="185" y2="90" strokeOpacity="0.25" />
+    </g>
+  ),
 };
 
 export default function StudioHero({
