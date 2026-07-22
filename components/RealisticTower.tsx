@@ -120,9 +120,11 @@ export function RealisticTower({ v }: { v: TowerVariant }) {
         <boxGeometry args={[v.w - 0.3, shaftH, v.d - 0.3]} />
         {glassMat}
       </mesh>
-      {/* floor slabs + spandrels */}
+      {/* floor slabs + spandrels + lit interiors + balconies */}
       {Array.from({ length: v.floors + 1 }).map((_, i) => {
         const y = podiumH + i * FLOOR_H;
+        const lit = (i * 5 + 3) % 7 < 3; // interior lighting on ~40% of floors
+        const balcony = i > 3 && i < v.floors - 1 && (i * 3 + 1) % 4 === 0;
         return (
           <group key={`fl${i}`}>
             <mesh position={[0, y, 0]} castShadow>
@@ -131,8 +133,26 @@ export function RealisticTower({ v }: { v: TowerVariant }) {
             </mesh>
             <mesh position={[0, y - FLOOR_H * 0.32, 0]}>
               <boxGeometry args={[v.w + 0.05, 0.7, v.d + 0.05]} />
-              <meshStandardMaterial color="#3b4658" metalness={0.6} roughness={0.5} />
+              <meshStandardMaterial
+                color={lit ? "#ffdba0" : "#3b4658"}
+                emissive={lit ? "#ffcf8a" : "#000000"}
+                emissiveIntensity={lit ? 0.7 : 0}
+                metalness={0.5}
+                roughness={0.5}
+              />
             </mesh>
+            {balcony && (
+              <group>
+                <mesh position={[0, y - 0.4, v.d / 2 + 0.7]} castShadow>
+                  <boxGeometry args={[v.w * 0.6, 0.14, 1.4]} />
+                  {concrete}
+                </mesh>
+                <mesh position={[0, y - 0.05, v.d / 2 + 1.36]}>
+                  <boxGeometry args={[v.w * 0.6, 0.7, 0.05]} />
+                  <meshStandardMaterial color="#9fb2c8" metalness={0.3} roughness={0.2} transparent opacity={0.35} />
+                </mesh>
+              </group>
+            )}
           </group>
         );
       })}
@@ -155,9 +175,23 @@ export function RealisticTower({ v }: { v: TowerVariant }) {
         <boxGeometry args={[v.w * 0.55, 2.6, v.d * 0.55]} />
         {v.greenRoof ? <meshStandardMaterial color="#2f6a4a" roughness={0.9} /> : glassMat}
       </mesh>
-      {[-1, 1].map((s, i) => (
-        <mesh key={`pl${i}`} position={[s * v.w * 0.22, podiumH + shaftH + 1.1, 0]} castShadow>
-          <boxGeometry args={[1.3, 1.3, 1.6]} />
+      {/* rooftop mechanical equipment */}
+      {[[-0.26, 0.15], [0.24, -0.18], [0.05, 0.28]].map(([fx, fz], i) => (
+        <mesh key={`eq${i}`} position={[fx * v.w, podiumH + shaftH + 1.0, fz * v.d]} castShadow>
+          <boxGeometry args={[1.5, 1.1, 1.7]} />
+          {metal}
+        </mesh>
+      ))}
+      {[[-0.28, -0.2], [0.22, 0.24]].map(([fx, fz], i) => (
+        <mesh key={`cu${i}`} position={[fx * v.w, podiumH + shaftH + 1.1, fz * v.d]} castShadow>
+          <cylinderGeometry args={[0.55, 0.55, 0.9, 14]} />
+          <meshStandardMaterial color="#8b95a3" metalness={0.7} roughness={0.5} />
+        </mesh>
+      ))}
+      {/* rooftop parapet frame */}
+      {[[0, 1, v.d / 2], [0, 1, -v.d / 2]].map(([, , z], i) => (
+        <mesh key={`pa${i}`} position={[0, podiumH + shaftH + 0.7, z as number]}>
+          <boxGeometry args={[v.w + 0.2, 0.5, 0.1]} />
           {metal}
         </mesh>
       ))}
@@ -196,11 +230,14 @@ export function TowerThumb({ v, className = "" }: { v: TowerVariant; className?:
         dpr={[1, 1.5]}
         frameloop="demand"
         camera={{ position: [20, 13, 26], fov: 30 }}
-        gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.02 }}
+        gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.12 }}
       >
         <Suspense fallback={null}>
-          <hemisphereLight args={["#9fb0d8", "#0e1730", 0.7]} />
-          <directionalLight position={[14, 20, 10]} intensity={2.3} color="#ffe0b8" castShadow shadow-mapSize={[1024, 1024]} />
+          <fog attach="fog" args={["#141d38", 34, 78]} />
+          <hemisphereLight args={["#9fb0d8", "#0e1730", 0.75]} />
+          <directionalLight position={[14, 20, 10]} intensity={2.5} color="#ffe0b8" castShadow shadow-mapSize={[1024, 1024]} />
+          {/* cool rim for edge separation */}
+          <directionalLight position={[-12, 10, -8]} intensity={1.1} color="#9fb2ff" />
           <group position={[0, -8, 0]}>
             <RealisticTower v={v} />
             <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>

@@ -292,7 +292,7 @@ export default function DesignStudioHero() {
                 <span className="text-xs text-fg-faint">Model open in workspace…</span>
               </div>
             ) : (
-              <Model3D background />
+              <Model3D modelUrl="/models/littlest-tokyo.glb" background />
             )}
             <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 text-[10px]">
               <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-fg-muted backdrop-blur">BIM · Rev D</span>
