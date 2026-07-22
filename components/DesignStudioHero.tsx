@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import BuildingRender from "@/components/BuildingRender";
+import ImmersiveStudio from "@/components/ImmersiveStudio";
 
 // Real WebGL model — client-only, lazy-loaded so three.js stays out of the
 // initial payload.
@@ -253,6 +254,7 @@ function Row({ delay = 0, children, className = "" }: { delay?: number; children
 export default function DesignStudioHero() {
   const [tab, setTab] = useState("3D Model");
   const [expanded, setExpanded] = useState<number | null>(0);
+  const [immersive, setImmersive] = useState(false);
 
   const tabIcon: Record<string, React.ReactNode> = {
     "3D Model": <path d="M12 3 L20 7.5 L20 16.5 L12 21 L4 16.5 L4 7.5 Z M4 7.5 L12 12 L20 7.5 M12 12 L12 21" />,
@@ -284,7 +286,14 @@ export default function DesignStudioHero() {
             className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-edge"
             style={{ background: "linear-gradient(160deg,#0b1330 0%,#152046 55%,#3a3457 80%,#5b4a63 100%)" }}
           >
-            <Model3D />
+            {/* unmount the dashboard canvas while the immersive workspace owns the GPU */}
+            {immersive ? (
+              <div className="blueprint flex h-full w-full items-center justify-center bg-base">
+                <span className="text-xs text-fg-faint">Model open in workspace…</span>
+              </div>
+            ) : (
+              <Model3D />
+            )}
             <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 text-[10px]">
               <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-fg-muted backdrop-blur">BIM · Rev D</span>
               <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-accent-cyan backdrop-blur">LOD 350</span>
@@ -292,6 +301,12 @@ export default function DesignStudioHero() {
             <div className="pointer-events-none absolute bottom-3 left-3 rounded border border-edge bg-base/70 px-2 py-0.5 text-[10px] text-fg-faint backdrop-blur">
               drag to orbit · scroll to zoom
             </div>
+            <button
+              onClick={() => setImmersive(true)}
+              className="shine absolute right-3 top-3 flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent/15 px-2.5 py-1 text-[11px] font-medium text-fg backdrop-blur transition hover:bg-accent/25"
+            >
+              ⛶ Enter Workspace
+            </button>
             <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded border border-edge bg-base/70 px-2 py-0.5 text-[10px] backdrop-blur">
               <span className="live-dot h-1.5 w-1.5 rounded-full bg-positive" />
               <span className="font-mono text-fg-muted">Rendering · 60fps</span>
@@ -610,6 +625,8 @@ export default function DesignStudioHero() {
           </div>
         </div>
       </Row>
+
+      <ImmersiveStudio open={immersive} onClose={() => setImmersive(false)} />
     </div>
   );
 }
