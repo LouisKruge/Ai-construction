@@ -93,9 +93,42 @@ function GlassVolume({
   );
 }
 
+/* low-rise city context ringing the hero building */
+function City() {
+  const blocks = useMemo(() => {
+    let s = 7;
+    const rand = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+    return Array.from({ length: 40 }, () => {
+      const ang = rand() * Math.PI * 2;
+      const rad = 24 + rand() * 24;
+      const h = 2 + rand() * 6.5;
+      const w = 1.6 + rand() * 2.2;
+      const d = 1.6 + rand() * 2.2;
+      return { x: Math.cos(ang) * rad, z: Math.sin(ang) * rad, h, w, d, lit: rand() };
+    });
+  }, []);
+  return (
+    <group>
+      {blocks.map((b, i) => (
+        <mesh key={i} position={[b.x, b.h / 2, b.z]}>
+          <boxGeometry args={[b.w, b.h, b.d]} />
+          <meshStandardMaterial
+            color="#0b1428"
+            metalness={0.4}
+            roughness={0.6}
+            emissive={b.lit > 0.55 ? "#ffcf8a" : "#1a2440"}
+            emissiveIntensity={b.lit > 0.55 ? 0.25 : 0.05}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function Building() {
   return (
     <group position={[0, 0, 0]}>
+      <City />
       {/* podium */}
       <GlassVolume size={[7, 2.2, 5]} position={[0, 1.1, 0]} cols={26} rows={6} seed={11} />
       {/* mid block (setback) */}
