@@ -4,19 +4,21 @@
 // glass materials, emissive lit windows, dusk lighting, image-based reflections
 // (built from in-scene light shapes, no external HDR) and a reflective plaza.
 
-import { useMemo, useRef, Suspense, Component, type ReactNode } from "react";
+import { useMemo, useRef, useEffect, Suspense, Component, type ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   OrbitControls,
   ContactShadows,
   Environment,
-  Lightformer,
   MeshReflectorMaterial,
   Edges,
   useGLTF,
+  useAnimations,
 } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette, SSAO, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
+
+const DRACO = "/draco/gltf/";
 
 export type Selection = string | null;
 
@@ -24,20 +26,29 @@ interface ModelProps {
   modelUrl?: string | null;
   selected?: Selection;
   onSelect?: (name: Selection) => void;
+  background?: boolean;
 }
 
-// A real GLB/GLTF, auto-centered and scaled to fit the stage.
+// A real GLB/GLTF asset: DRACO-decoded, auto-centered + scaled to fit, shadowed,
+// with its embedded animation (if any) playing.
 function ImportedModel({ url }: { url: string }) {
-  const { scene } = useGLTF(url);
+  const group = useRef<THREE.Group>(null);
+  const gltf = useGLTF(url, DRACO);
+  const { actions } = useAnimations(gltf.animations, group);
+  useEffect(() => {
+    const first = Object.values(actions)[0];
+    first?.reset().fadeIn(0.4).play();
+    return () => { first?.fadeOut(0.2); };
+  }, [actions]);
   const fitted = useMemo(() => {
-    const obj = scene.clone(true);
+    const obj = gltf.scene.clone(true);
     const box = new THREE.Box3().setFromObject(obj);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
     box.getSize(size);
     box.getCenter(center);
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
-    const s = 14 / maxDim;
+    const s = 12 / maxDim;
     obj.scale.setScalar(s);
     obj.position.set(-center.x * s, -box.min.y * s, -center.z * s);
     obj.traverse((o) => {
@@ -48,9 +59,11 @@ function ImportedModel({ url }: { url: string }) {
       }
     });
     return obj;
-  }, [scene]);
-  return <primitive object={fitted} />;
+  }, [gltf.scene]);
+  return <group ref={group}><primitive object={fitted} /></group>;
 }
+
+useGLTF.preload("/models/littlest-tokyo.glb", DRACO);
 
 // Falls back to the parametric massing if an uploaded model fails to parse.
 class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
@@ -250,24 +263,27 @@ function ProceduralBuilding({ selected, onSelect }: { selected?: Selection; onSe
 function Building({ modelUrl, selected, onSelect }: ModelProps) {
   return (
     <group position={[0, 0, 0]}>
-      <City />
       {modelUrl ? (
-        <Suspense fallback={<ProceduralBuilding selected={selected} onSelect={onSelect} />}>
-          <ModelBoundary fallback={<ProceduralBuilding selected={selected} onSelect={onSelect} />}>
+        // real asset — no procedural context boxes
+        <Suspense fallback={null}>
+          <ModelBoundary fallback={<><City /><ProceduralBuilding selected={selected} onSelect={onSelect} /></>}>
             <ImportedModel url={modelUrl} />
           </ModelBoundary>
         </Suspense>
       ) : (
-        <ProceduralBuilding selected={selected} onSelect={onSelect} />
+        <>
+          <City />
+          <ProceduralBuilding selected={selected} onSelect={onSelect} />
+        </>
       )}
     </group>
   );
 }
 
-function Scene({ modelUrl, selected, onSelect }: ModelProps) {
+function Scene({ modelUrl, selected, onSelect, background }: ModelProps) {
   return (
     <>
-      <fog attach="fog" args={["#141d38", 26, 70]} />
+      <fog attach="fog" args={["#141d38", 30, 80]} />
 
       {/* lighting */}
       <hemisphereLight args={["#9fb0d8", "#0e1730", 0.85]} />
@@ -277,7 +293,7 @@ function Scene({ modelUrl, selected, onSelect }: ModelProps) {
       <directionalLight position={[-4, 10, -14]} intensity={1.4} color="#9fb2ff" />
       <pointLight position={[4, 2.5, 5]} intensity={26} distance={18} color="#ffb060" />
 
-      <Building modelUrl={modelUrl} selected={selected} onSelect={onSelect} />
+      <Building modelUrl={modelUrl} selected={selected} onSelect={onSelect} background={background} />
 
       {/* reflective plaza */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
@@ -299,14 +315,14 @@ function Scene({ modelUrl, selected, onSelect }: ModelProps) {
 
       <ContactShadows position={[0, 0.02, 0]} scale={44} far={22} blur={2.6} opacity={0.55} />
 
-      {/* image-based lighting built from soft light panels (no external HDR) */}
-      <Environment resolution={256} frames={1}>
-        <color attach="background" args={["#0a1226"]} />
-        <Lightformer form="rect" intensity={2.2} color="#9fb2ff" position={[0, 12, -8]} scale={[20, 8, 1]} />
-        <Lightformer form="rect" intensity={1.4} color="#ffd9a8" position={[10, 6, 6]} scale={[10, 12, 1]} rotation={[0, -Math.PI / 3, 0]} />
-        <Lightformer form="rect" intensity={1.1} color="#6d7cff" position={[-12, 5, 2]} scale={[10, 12, 1]} rotation={[0, Math.PI / 2.4, 0]} />
-        <Lightformer form="ring" intensity={1.6} color="#ffb27a" position={[8, 3, -10]} scale={[8, 8, 1]} />
-      </Environment>
+      {/* real HDRI image-based lighting (dusk) — reflections + sky */}
+      <Environment
+        files="/hdri/venice_sunset_1k.hdr"
+        environmentIntensity={1.05}
+        background={!!background}
+        backgroundBlurriness={0.5}
+        backgroundIntensity={0.6}
+      />
 
       <OrbitControls
         makeDefault
@@ -331,7 +347,7 @@ function Scene({ modelUrl, selected, onSelect }: ModelProps) {
   );
 }
 
-export default function BuildingModel3D({ modelUrl, selected, onSelect }: ModelProps) {
+export default function BuildingModel3D({ modelUrl, selected, onSelect, background }: ModelProps) {
   return (
     <Canvas
       shadows
@@ -341,7 +357,9 @@ export default function BuildingModel3D({ modelUrl, selected, onSelect }: ModelP
       className="h-full w-full"
       onPointerMissed={() => onSelect?.(null)}
     >
-      <Scene modelUrl={modelUrl} selected={selected} onSelect={onSelect} />
+      <Suspense fallback={null}>
+        <Scene modelUrl={modelUrl} selected={selected} onSelect={onSelect} background={background} />
+      </Suspense>
     </Canvas>
   );
 }
