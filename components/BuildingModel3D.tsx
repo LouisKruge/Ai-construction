@@ -4,17 +4,56 @@
 // glass materials, emissive lit windows, dusk lighting, image-based reflections
 // (built from in-scene light shapes, no external HDR) and a reflective plaza.
 
-import { useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useMemo, useRef, Suspense } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   OrbitControls,
   ContactShadows,
   Environment,
   Lightformer,
   MeshReflectorMaterial,
+  useGLTF,
 } from "@react-three/drei";
-import { EffectComposer, Bloom, Vignette, SMAA } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Vignette, SSAO, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
+
+// Drop a real project model in /public/models/*.glb and point MODEL_URL at it
+// (e.g. "/models/sandton-gate.glb") to render the actual BIM/GLTF geometry in
+// this same viewport instead of the parametric massing below.
+const MODEL_URL: string | null = null;
+
+function ImportedModel({ url }: { url: string }) {
+  const { scene } = useGLTF(url);
+  return <primitive object={scene} />;
+}
+
+// Cinematic sun that slowly arcs across the scene (animated lighting).
+function AnimatedSun() {
+  const ref = useRef<THREE.DirectionalLight>(null);
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime() * 0.06;
+    if (ref.current) {
+      ref.current.position.set(Math.cos(t) * 15, 15 + Math.sin(t) * 3, Math.sin(t) * 11 - 2);
+    }
+  });
+  return (
+    <directionalLight
+      ref={ref}
+      position={[12, 18, 9]}
+      intensity={2.8}
+      color="#ffe0b8"
+      castShadow
+      shadow-mapSize={[2048, 2048]}
+      shadow-camera-near={1}
+      shadow-camera-far={60}
+      shadow-camera-left={-20}
+      shadow-camera-right={20}
+      shadow-camera-top={24}
+      shadow-camera-bottom={-6}
+      shadow-bias={-0.0004}
+    />
+  );
+}
 
 /* ── procedural curtain-wall / lit-window texture ─────────────────────────── */
 function useWindowTexture(cols: number, rows: number, seed: number) {
@@ -125,10 +164,9 @@ function City() {
   );
 }
 
-function Building() {
+function ProceduralBuilding() {
   return (
-    <group position={[0, 0, 0]}>
-      <City />
+    <>
       {/* podium */}
       <GlassVolume size={[7, 2.2, 5]} position={[0, 1.1, 0]} cols={26} rows={6} seed={11} />
       {/* mid block (setback) */}
@@ -154,6 +192,21 @@ function Building() {
         <boxGeometry args={[7.2, 0.12, 0.5]} />
         <meshStandardMaterial color="#223257" metalness={0.5} roughness={0.5} />
       </mesh>
+    </>
+  );
+}
+
+function Building() {
+  return (
+    <group position={[0, 0, 0]}>
+      <City />
+      {MODEL_URL ? (
+        <Suspense fallback={null}>
+          <ImportedModel url={MODEL_URL} />
+        </Suspense>
+      ) : (
+        <ProceduralBuilding />
+      )}
     </group>
   );
 }
@@ -165,20 +218,7 @@ function Scene() {
 
       {/* lighting */}
       <hemisphereLight args={["#9fb0d8", "#0e1730", 0.85]} />
-      <directionalLight
-        position={[12, 18, 9]}
-        intensity={2.8}
-        color="#ffe0b8"
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-near={1}
-        shadow-camera-far={60}
-        shadow-camera-left={-20}
-        shadow-camera-right={20}
-        shadow-camera-top={24}
-        shadow-camera-bottom={-6}
-        shadow-bias={-0.0004}
-      />
+      <AnimatedSun />
       <directionalLight position={[-14, 9, -8]} intensity={1.1} color="#7d8cff" />
       {/* cool rim from behind for edge separation */}
       <directionalLight position={[-4, 10, -14]} intensity={1.4} color="#9fb2ff" />
@@ -227,8 +267,9 @@ function Scene() {
         target={[0, 5.5, 0]}
       />
 
-      {/* cinematic post: bloom on lit windows + gentle vignette + AA */}
-      <EffectComposer enableNormalPass={false}>
+      {/* cinematic post: ambient occlusion + bloom + vignette + AA */}
+      <EffectComposer enableNormalPass multisampling={4}>
+        <SSAO samples={21} radius={0.12} intensity={20} luminanceInfluence={0.5} color={new THREE.Color("black")} worldDistanceThreshold={40} worldDistanceFalloff={6} worldProximityThreshold={6} worldProximityFalloff={1} />
         <Bloom mipmapBlur intensity={0.7} luminanceThreshold={0.55} luminanceSmoothing={0.2} radius={0.7} />
         <Vignette eskil={false} offset={0.28} darkness={0.62} />
         <SMAA />
