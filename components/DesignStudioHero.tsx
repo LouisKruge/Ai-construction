@@ -441,7 +441,7 @@ export default function DesignStudioHero() {
                   <span className="text-[11px] text-fg-faint">{o.label}</span>
                 </div>
                 <div className="relative overflow-hidden rounded-lg">
-                  <TowerThumb v={towerVariants[i]} className="aspect-[4/3] w-full" />
+                  <TowerThumb v={towerVariants[i]} className="aspect-[4/3] w-full" delay={1500 + i * 600} />
                   <span className="absolute right-1.5 top-1.5 rounded bg-base/70 px-1.5 py-0.5 font-mono text-[10px] text-fg backdrop-blur">{o.score}/100</span>
                 </div>
                 {/* metrics */}

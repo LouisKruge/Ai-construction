@@ -2,7 +2,7 @@
 // grid, drafting lines, gradient lighting, drifting particles, noise + vignette.
 // Purely decorative — sits behind all content.
 
-const particles = Array.from({ length: 22 }, (_, i) => ({
+const particles = Array.from({ length: 10 }, (_, i) => ({
   left: `${(i * 47.3) % 100}%`,
   top: `${(i * 29.7) % 100}%`,
   size: (i % 3) + 1.5,

@@ -5,8 +5,8 @@
 // HDRI, a podium, corner columns and a rooftop mechanical crown. Reads as a
 // real building under image-based lighting, not a textured box.
 
-import { useLayoutEffect, useMemo, useRef, Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useLayoutEffect, useMemo, useRef, useState, useEffect, Suspense } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -221,34 +221,55 @@ export function RealisticTower({ v }: { v: TowerVariant }) {
   );
 }
 
-/* Small self-contained 3D thumbnail for the Design Options cards. */
-export function TowerThumb({ v, className = "" }: { v: TowerVariant; className?: string }) {
+// Captures the rendered frame to a still image, then the parent unmounts the
+// canvas — so the 4 option thumbnails cost nothing (and hold no WebGL context)
+// after their first render.
+function Freeze({ onReady, delay }: { onReady: (u: string) => void; delay: number }) {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        onReady(gl.domElement.toDataURL("image/png"));
+      } catch {
+        /* ignore */
+      }
+    }, delay);
+    return () => clearTimeout(t);
+  }, [gl, onReady, delay]);
+  return null;
+}
+
+/* Small 3D thumbnail for the Design Options cards — renders once, then freezes
+   to a static image to keep the dashboard smooth. */
+export function TowerThumb({ v, className = "", delay = 1300 }: { v: TowerVariant; className?: string; delay?: number }) {
+  const [img, setImg] = useState<string | null>(null);
+  const dusk = "linear-gradient(160deg,#0d1836 0%,#1a2748 55%,#3a3256 82%,#5a4a60 100%)";
   return (
-    <div className={`overflow-hidden rounded-lg ${className}`} style={{ background: "linear-gradient(160deg,#0d1836 0%,#1a2748 55%,#3a3256 82%,#5a4a60 100%)" }}>
-      <Canvas
-        shadows
-        dpr={[1, 1.5]}
-        frameloop="demand"
-        camera={{ position: [20, 13, 26], fov: 30 }}
-        gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.12 }}
-      >
-        <Suspense fallback={null}>
-          <fog attach="fog" args={["#141d38", 34, 78]} />
-          <hemisphereLight args={["#9fb0d8", "#0e1730", 0.75]} />
-          <directionalLight position={[14, 20, 10]} intensity={2.5} color="#ffe0b8" castShadow shadow-mapSize={[1024, 1024]} />
-          {/* cool rim for edge separation */}
-          <directionalLight position={[-12, 10, -8]} intensity={1.1} color="#9fb2ff" />
-          <group position={[0, -8, 0]}>
-            <RealisticTower v={v} />
-            <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-              <circleGeometry args={[24, 48]} />
-              <meshStandardMaterial color="#0a1020" metalness={0.5} roughness={0.7} />
-            </mesh>
-          </group>
-          <ContactShadows position={[0, -8, 0]} scale={26} far={20} blur={2.2} opacity={0.5} />
-          <Environment files="/hdri/venice_sunset_1k.hdr" environmentIntensity={1.0} />
-        </Suspense>
-      </Canvas>
+    <div className={`relative overflow-hidden rounded-lg ${className}`} style={{ background: dusk }}>
+      {img && <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+      {!img && (
+        <Canvas
+          dpr={1}
+          camera={{ position: [20, 13, 26], fov: 30 }}
+          gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.12 }}
+        >
+          <Suspense fallback={null}>
+            <hemisphereLight args={["#9fb0d8", "#0e1730", 0.75]} />
+            <directionalLight position={[14, 20, 10]} intensity={2.5} color="#ffe0b8" />
+            <directionalLight position={[-12, 10, -8]} intensity={1.1} color="#9fb2ff" />
+            <group position={[0, -8, 0]}>
+              <RealisticTower v={v} />
+              <mesh rotation={[-Math.PI / 2, 0, 0]}>
+                <circleGeometry args={[24, 48]} />
+                <meshStandardMaterial color="#0a1020" metalness={0.5} roughness={0.7} />
+              </mesh>
+            </group>
+            <ContactShadows position={[0, -8, 0]} scale={26} far={20} blur={2.2} opacity={0.5} />
+            <Environment files="/hdri/venice_sunset_1k.hdr" environmentIntensity={1.0} />
+            <Freeze onReady={setImg} delay={delay} />
+          </Suspense>
+        </Canvas>
+      )}
     </div>
   );
 }

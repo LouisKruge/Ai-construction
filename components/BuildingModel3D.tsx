@@ -15,7 +15,7 @@ import {
   useGLTF,
   useAnimations,
 } from "@react-three/drei";
-import { EffectComposer, Bloom, Vignette, SSAO, SMAA } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Vignette, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { RealisticTower, towerVariants } from "@/components/RealisticTower";
 
@@ -93,7 +93,7 @@ function AnimatedSun() {
       intensity={2.8}
       color="#ffe0b8"
       castShadow
-      shadow-mapSize={[2048, 2048]}
+      shadow-mapSize={[1024, 1024]}
       shadow-camera-near={1}
       shadow-camera-far={60}
       shadow-camera-left={-20}
@@ -293,21 +293,21 @@ function Scene({ modelUrl, selected, onSelect, background }: ModelProps) {
 
       <Building modelUrl={modelUrl} selected={selected} onSelect={onSelect} background={background} />
 
-      {/* reflective plaza */}
+      {/* reflective plaza (lower-res for perf) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <circleGeometry args={[46, 64]} />
+        <circleGeometry args={[46, 48]} />
         <MeshReflectorMaterial
-          resolution={1024}
-          mirror={0.55}
-          mixBlur={7}
-          mixStrength={4}
-          blur={[420, 110]}
+          resolution={512}
+          mirror={0.5}
+          mixBlur={8}
+          mixStrength={3}
+          blur={[300, 80]}
           minDepthThreshold={0.3}
           maxDepthThreshold={1.2}
-          depthScale={1.1}
+          depthScale={1}
           color="#080d1a"
           metalness={0.6}
-          roughness={0.85}
+          roughness={0.9}
         />
       </mesh>
 
@@ -336,11 +336,10 @@ function Scene({ modelUrl, selected, onSelect, background }: ModelProps) {
         target={[0, 5.5, 0]}
       />
 
-      {/* cinematic post: ambient occlusion + bloom + vignette + AA */}
-      <EffectComposer enableNormalPass multisampling={4}>
-        <SSAO samples={21} radius={0.12} intensity={20} luminanceInfluence={0.5} color={new THREE.Color("black")} worldDistanceThreshold={40} worldDistanceFalloff={6} worldProximityThreshold={6} worldProximityFalloff={1} />
-        <Bloom mipmapBlur intensity={0.7} luminanceThreshold={0.55} luminanceSmoothing={0.2} radius={0.7} />
-        <Vignette eskil={false} offset={0.28} darkness={0.62} />
+      {/* cinematic post — bloom + vignette + AA (SSAO dropped for smoothness) */}
+      <EffectComposer multisampling={4}>
+        <Bloom mipmapBlur intensity={0.65} luminanceThreshold={0.6} luminanceSmoothing={0.2} radius={0.6} />
+        <Vignette eskil={false} offset={0.28} darkness={0.6} />
         <SMAA />
       </EffectComposer>
     </>
@@ -351,7 +350,7 @@ export default function BuildingModel3D({ modelUrl, selected, onSelect, backgrou
   return (
     <Canvas
       shadows
-      dpr={[1, 2]}
+      dpr={[1, 1.5]}
       camera={{ position: [15, 9, 17], fov: 32 }}
       gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
       className="h-full w-full"
