@@ -1,7 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import BuildingRender from "@/components/BuildingRender";
+
+// Real WebGL model — client-only (no SSR), lazy-loaded so three.js stays out of
+// the initial payload.
+const Model3D = dynamic(() => import("@/components/BuildingModel3D"), {
+  ssr: false,
+  loading: () => (
+    <div className="blueprint flex h-full w-full items-center justify-center bg-base">
+      <span className="animate-pulse text-xs text-fg-faint">Preparing 3D model…</span>
+    </div>
+  ),
+});
 
 /* ── view tabs with line icons ──────────────────────────────────────────── */
 const tabIcon: Record<string, React.ReactNode> = {
@@ -210,7 +222,24 @@ export default function DesignStudioHero() {
             </span>
           </div>
 
-          <BuildingRender className="aspect-[16/9] w-full" />
+          <div
+            className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-edge"
+            style={{ background: "linear-gradient(160deg,#0b1330 0%,#152046 55%,#3a3457 80%,#5b4a63 100%)" }}
+          >
+            <Model3D />
+            {/* HUD overlay */}
+            <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 text-[10px]">
+              <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-fg-muted backdrop-blur">BIM · Rev D</span>
+              <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-accent-cyan backdrop-blur">LOD 350</span>
+            </div>
+            <div className="pointer-events-none absolute bottom-3 left-3 rounded border border-edge bg-base/70 px-2 py-0.5 text-[10px] text-fg-faint backdrop-blur">
+              drag to orbit · scroll to zoom
+            </div>
+            <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded border border-edge bg-base/70 px-2 py-0.5 text-[10px] backdrop-blur">
+              <span className="live-dot h-1.5 w-1.5 rounded-full bg-positive" />
+              <span className="font-mono text-fg-muted">Rendering · 60fps</span>
+            </div>
+          </div>
 
           <div className="mt-4 grid grid-cols-6 gap-2">
             {viewTabs.map((t) => {
