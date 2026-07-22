@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import BuildingRender from "@/components/BuildingRender";
 import ImmersiveStudio from "@/components/ImmersiveStudio";
+import { TowerThumb, towerVariants } from "@/components/RealisticTower";
 
 // Real WebGL model — client-only, lazy-loaded so three.js stays out of the
 // initial payload.
@@ -292,7 +292,7 @@ export default function DesignStudioHero() {
                 <span className="text-xs text-fg-faint">Model open in workspace…</span>
               </div>
             ) : (
-              <Model3D modelUrl="/models/littlest-tokyo.glb" background />
+              <Model3D background />
             )}
             <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 text-[10px]">
               <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-fg-muted backdrop-blur">BIM · Rev D</span>
@@ -434,14 +434,14 @@ export default function DesignStudioHero() {
         <div className="glass elev rounded-2xl p-5">
           <SectionTitle right={<span className="text-[11px] text-fg-faint">AI-generated · scored 0–100</span>}>Design Options Generator</SectionTitle>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {options.map((o) => (
+            {options.map((o, i) => (
               <div key={o.id} className={`lift group rounded-xl border bg-base/40 p-3 ${o.active ? "border-accent shadow-lg shadow-accent/15 ring-1 ring-accent/40" : "border-edge"}`}>
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-[13px] font-medium text-fg">Option {o.id}</span>
                   <span className="text-[11px] text-fg-faint">{o.label}</span>
                 </div>
                 <div className="relative overflow-hidden rounded-lg">
-                  <BuildingRender className="aspect-[4/3] w-full" chrome={false} />
+                  <TowerThumb v={towerVariants[i]} className="aspect-[4/3] w-full" />
                   <span className="absolute right-1.5 top-1.5 rounded bg-base/70 px-1.5 py-0.5 font-mono text-[10px] text-fg backdrop-blur">{o.score}/100</span>
                 </div>
                 {/* metrics */}

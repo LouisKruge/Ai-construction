@@ -17,6 +17,7 @@ import {
 } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette, SSAO, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
+import { RealisticTower, towerVariants } from "@/components/RealisticTower";
 
 const DRACO = "/draco/gltf/";
 
@@ -266,15 +267,12 @@ function Building({ modelUrl, selected, onSelect }: ModelProps) {
       {modelUrl ? (
         // real asset — no procedural context boxes
         <Suspense fallback={null}>
-          <ModelBoundary fallback={<><City /><ProceduralBuilding selected={selected} onSelect={onSelect} /></>}>
+          <ModelBoundary fallback={<RealisticTower v={towerVariants[0]} />}>
             <ImportedModel url={modelUrl} />
           </ModelBoundary>
         </Suspense>
       ) : (
-        <>
-          <City />
-          <ProceduralBuilding selected={selected} onSelect={onSelect} />
-        </>
+        <RealisticTower v={towerVariants[0]} />
       )}
     </group>
   );
@@ -329,11 +327,11 @@ function Scene({ modelUrl, selected, onSelect, background }: ModelProps) {
         enablePan={false}
         autoRotate
         autoRotateSpeed={0.55}
-        minDistance={12}
-        maxDistance={30}
+        minDistance={14}
+        maxDistance={34}
         minPolarAngle={Math.PI / 6}
         maxPolarAngle={Math.PI / 2.15}
-        target={[0, 5.5, 0]}
+        target={[0, 7, 0]}
       />
 
       {/* cinematic post: ambient occlusion + bloom + vignette + AA */}
@@ -352,7 +350,7 @@ export default function BuildingModel3D({ modelUrl, selected, onSelect, backgrou
     <Canvas
       shadows
       dpr={[1, 2]}
-      camera={{ position: [15, 9, 17], fov: 32 }}
+      camera={{ position: [19, 12, 22], fov: 32 }}
       gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
       className="h-full w-full"
       onPointerMissed={() => onSelect?.(null)}
