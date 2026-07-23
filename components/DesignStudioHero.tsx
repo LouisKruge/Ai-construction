@@ -1,20 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
-import ImmersiveStudio from "@/components/ImmersiveStudio";
+import StudioWorkspace from "@/components/StudioWorkspace";
 import { TowerThumb, towerVariants } from "@/components/RealisticTower";
-
-// Real WebGL model — client-only, lazy-loaded so three.js stays out of the
-// initial payload.
-const Model3D = dynamic(() => import("@/components/BuildingModel3D"), {
-  ssr: false,
-  loading: () => (
-    <div className="blueprint flex h-full w-full items-center justify-center bg-base">
-      <span className="animate-pulse text-xs text-fg-faint">Preparing 3D model…</span>
-    </div>
-  ),
-});
 
 /* ── count-up ─────────────────────────────────────────────────────────────*/
 function Count({ to, decimals = 0, prefix = "", suffix = "" }: { to: number; decimals?: number; prefix?: string; suffix?: string }) {
@@ -252,87 +240,14 @@ function Row({ delay = 0, children, className = "" }: { delay?: number; children
 }
 
 export default function DesignStudioHero() {
-  const [tab, setTab] = useState("3D Model");
   const [expanded, setExpanded] = useState<number | null>(0);
-  const [immersive, setImmersive] = useState(false);
-
-  const tabIcon: Record<string, React.ReactNode> = {
-    "3D Model": <path d="M12 3 L20 7.5 L20 16.5 L12 21 L4 16.5 L4 7.5 Z M4 7.5 L12 12 L20 7.5 M12 12 L12 21" />,
-    Plans: <path d="M4 4 H20 V20 H4 Z M4 10 H20 M10 4 V20 M10 14 H15" />,
-    Sections: <path d="M4 6 H20 M4 12 H20 M4 18 H20 M8 6 V18" />,
-    Elevations: <path d="M6 21 V7 L12 3 L18 7 V21 M9 12 H11 M13 12 H15 M9 16 H11 M13 16 H15" />,
-    Materials: <path d="M4 4 H11 V11 H4 Z M13 4 H20 V11 H13 Z M4 13 H11 V20 H4 Z M13 13 H20 V20 H13 Z" />,
-    Lighting: <path d="M12 3 V5 M12 19 V21 M5 12 H3 M21 12 H19 M6 6 L4.5 4.5 M18 6 L19.5 4.5 M9 15 A4 4 0 1 1 15 15 Z" />,
-  };
-  const viewTabs = Object.keys(tabIcon);
 
   return (
     <div className="space-y-4">
       {/* ── top row: viewport · kpis · ai assistant ─────────────────────── */}
       <Row delay={0} className="grid gap-4 lg:grid-cols-[1.55fr_0.9fr_1.05fr]">
-        {/* viewport */}
-        <div className="glass glow sheen relative overflow-hidden rounded-2xl p-5">
-          <div className="mb-4 flex items-start justify-between">
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight text-fg">DESIGN STUDIO</h2>
-              <p className="text-[13px] text-fg-faint">Intelligent generative design &amp; visualization</p>
-            </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-edge bg-base/50 px-2.5 py-0.5 text-[11px] text-fg-muted">
-              <span className="live-dot h-1.5 w-1.5 rounded-full bg-positive" /> Live
-            </span>
-          </div>
-
-          <div
-            className="relative aspect-[16/9] w-full overflow-hidden rounded-xl border border-edge"
-            style={{ background: "linear-gradient(160deg,#0b1330 0%,#152046 55%,#3a3457 80%,#5b4a63 100%)" }}
-          >
-            {/* unmount the dashboard canvas while the immersive workspace owns the GPU */}
-            {immersive ? (
-              <div className="blueprint flex h-full w-full items-center justify-center bg-base">
-                <span className="text-xs text-fg-faint">Model open in workspace…</span>
-              </div>
-            ) : (
-              <Model3D modelUrl="/models/littlest-tokyo.glb" background />
-            )}
-            <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-1.5 text-[10px]">
-              <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-fg-muted backdrop-blur">BIM · Rev D</span>
-              <span className="rounded border border-edge bg-base/70 px-2 py-0.5 font-mono text-accent-cyan backdrop-blur">LOD 350</span>
-            </div>
-            <div className="pointer-events-none absolute bottom-3 left-3 rounded border border-edge bg-base/70 px-2 py-0.5 text-[10px] text-fg-faint backdrop-blur">
-              drag to orbit · scroll to zoom
-            </div>
-            <button
-              onClick={() => setImmersive(true)}
-              className="shine absolute right-3 top-3 flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent/15 px-2.5 py-1 text-[11px] font-medium text-fg backdrop-blur transition hover:bg-accent/25"
-            >
-              ⛶ Enter Workspace
-            </button>
-            <div className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded border border-edge bg-base/70 px-2 py-0.5 text-[10px] backdrop-blur">
-              <span className="live-dot h-1.5 w-1.5 rounded-full bg-positive" />
-              <span className="font-mono text-fg-muted">Rendering · 60fps</span>
-            </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-6 gap-2">
-            {viewTabs.map((t) => {
-              const active = t === tab;
-              return (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`flex flex-col items-center gap-1.5 rounded-xl border py-2.5 text-[11px] transition-all duration-200 ${
-                    active ? "border-accent bg-accent/10 text-fg shadow-lg shadow-accent/10" : "border-edge text-fg-faint hover:-translate-y-0.5 hover:border-edge-strong hover:text-fg-muted"
-                  }`}
-                >
-                  <svg viewBox="0 0 24 24" className={`h-5 w-5 ${active ? "text-accent" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    {tabIcon[t]}
-                  </svg>
-                  {t}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* BIM workspace */}
+        <StudioWorkspace />
 
         {/* kpi column */}
         <div className="flex flex-col gap-3">
@@ -625,8 +540,6 @@ export default function DesignStudioHero() {
           </div>
         </div>
       </Row>
-
-      <ImmersiveStudio open={immersive} onClose={() => setImmersive(false)} />
     </div>
   );
 }
