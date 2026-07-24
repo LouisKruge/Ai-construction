@@ -10,6 +10,7 @@ import { RealisticTower, type TowerVariant } from "@/components/RealisticTower";
 import { useStudio, MATERIALS, CLASHES, type RenderMode } from "@/lib/studioStore";
 import { buildingSystems } from "@/lib/systems";
 import { fitToStage } from "@/lib/threeFit";
+import CityContext from "@/components/CityContext";
 
 const DRACO = "/draco/gltf/";
 
@@ -163,12 +164,16 @@ function Building() {
       </group>
       <ModeOverride groupRef={groupRef} mode={renderMode} />
       {showClashes && <ClashMarkers />}
-      {/* ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <circleGeometry args={[60, 64]} />
-        <meshStandardMaterial color="#0a1020" metalness={0.4} roughness={0.85} />
-      </mesh>
-      <ContactShadows position={[0, 0.01, 0]} scale={70} far={40} blur={2.4} opacity={0.55} />
+      {/* ground — full digital-twin district around the hero, or a plain pad under an imported asset */}
+      {glbUrl ? (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <circleGeometry args={[60, 64]} />
+          <meshStandardMaterial color="#0a1020" metalness={0.4} roughness={0.85} />
+        </mesh>
+      ) : (
+        <CityContext night={night} />
+      )}
+      <ContactShadows position={[0, 0.02, 0]} scale={44} far={30} blur={2.4} opacity={0.5} />
       <Environment files="/hdri/venice_sunset_1k.hdr" environmentIntensity={night ? 0.5 : 1.05} background backgroundBlurriness={0.6} backgroundIntensity={night ? 0.25 : 0.6} />
     </>
   );
@@ -202,7 +207,7 @@ export default function StudioViewport() {
       <Suspense fallback={null}>
         <Building />
         <Warmup />
-        <OrbitControls makeDefault enablePan enableDamping dampingFactor={0.08} minDistance={16} maxDistance={60} maxPolarAngle={Math.PI / 2.1} target={[0, 7, 0]} />
+        <OrbitControls makeDefault enablePan enableDamping dampingFactor={0.08} minDistance={14} maxDistance={95} maxPolarAngle={Math.PI / 2.05} target={[0, 7, 0]} />
         {/* cinematic post — subtle bloom on glass/lights, crisp AA, gentle vignette */}
         <EffectComposer enableNormalPass={false} multisampling={0}>
           <Bloom intensity={0.5} luminanceThreshold={0.72} luminanceSmoothing={0.22} mipmapBlur radius={0.7} />
