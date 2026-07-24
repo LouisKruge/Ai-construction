@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { PARTS, STATUS_ORDER, statusIndex, methodColor, statusColor, totalMass, type Part } from "@/lib/fabrication";
 import { exportSVG, exportPNG, exportDXF } from "@/lib/exporters";
+
+const Part3D = dynamic(() => import("@/components/Part3D"), { ssr: false });
 
 /* ── dimensioned shop drawing ─────────────────────────────────────────────*/
 export function ShopDrawing({ part, svgId }: { part: Part; svgId?: string }) {
@@ -114,9 +117,12 @@ function QA({ part }: { part: Part }) {
 
 export default function PartsPanel({ mode }: { mode: "design" | "production" }) {
   const [id, setId] = useState(PARTS[0].id);
+  const [view, setView] = useState<"split" | "3d" | "2d">("split");
   const part = PARTS.find((p) => p.id === id)!;
   const svgId = "shopdrawing";
   const getSvg = () => document.getElementById(svgId) as unknown as SVGSVGElement | null;
+  const show3D = view !== "2d";
+  const show2D = view !== "3d";
 
   return (
     <div className="grid gap-3 lg:grid-cols-[240px_1fr]">
@@ -147,15 +153,38 @@ export default function PartsPanel({ mode }: { mode: "design" | "production" }) 
             </div>
             <div className="text-[11px] text-fg-faint">{part.id} · Rev {part.rev} · {part.category} · {part.factory}</div>
           </div>
-          <div className="flex gap-1.5">
-            <button onClick={() => { const s = getSvg(); if (s) exportPNG(s, part.id); }} className="rounded-md border border-edge px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg">↧ PNG</button>
-            <button onClick={() => { const s = getSvg(); if (s) exportSVG(s, part.id); }} className="rounded-md border border-edge px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg">↧ SVG</button>
-            <button onClick={() => exportDXF({ width: part.w, depth: part.h, name: part.id })} className="rounded-md border border-edge px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg">↧ DXF · CAD</button>
+          <div className="flex items-center gap-2">
+            <div className="flex rounded-md border border-edge p-0.5">
+              {(["split", "3d", "2d"] as const).map((v) => (
+                <button key={v} onClick={() => setView(v)} className={`rounded px-2 py-0.5 text-[11px] font-medium capitalize transition ${view === v ? "bg-accent/15 text-accent" : "text-fg-faint hover:text-fg"}`}>{v === "split" ? "2D + 3D" : v.toUpperCase()}</button>
+              ))}
+            </div>
+            <div className="flex gap-1.5">
+              <button onClick={() => { const s = getSvg(); if (s) exportPNG(s, part.id); }} className="rounded-md border border-edge px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg">↧ PNG</button>
+              <button onClick={() => { const s = getSvg(); if (s) exportSVG(s, part.id); }} className="rounded-md border border-edge px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg">↧ SVG</button>
+              <button onClick={() => exportDXF({ width: part.w, depth: part.h, name: part.id })} className="rounded-md border border-edge px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg">↧ DXF · CAD</button>
+            </div>
           </div>
         </div>
 
-        <div className="blueprint overflow-hidden rounded-xl border border-edge bg-base">
-          <ShopDrawing part={part} svgId={svgId} />
+        <div className={`grid gap-3 ${view === "split" ? "lg:grid-cols-2" : "grid-cols-1"}`}>
+          {show3D && (
+            <div className="relative h-[340px] overflow-hidden rounded-xl border border-edge bg-base">
+              <div className="pointer-events-none absolute left-3 top-2.5 z-10">
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-fg-faint">3D Model · material</div>
+                <div className="text-[11px] text-fg-muted">{part.material} {part.grade} · t{part.thk} · {part.finish}</div>
+              </div>
+              <span className="pointer-events-none absolute right-3 top-2.5 z-10 rounded px-1.5 py-0.5 text-[9px] font-medium text-white" style={{ background: methodColor[part.method] }}>{part.method}</span>
+              <div className="pointer-events-none absolute bottom-2 left-3 z-10 text-[10px] text-fg-faint">drag to orbit · scroll to zoom</div>
+              <Part3D part={part} />
+            </div>
+          )}
+          {show2D && (
+            <div className="blueprint relative h-[340px] overflow-hidden rounded-xl border border-edge bg-base">
+              <div className="pointer-events-none absolute left-3 top-2.5 z-10 text-[10px] font-semibold uppercase tracking-widest text-fg-faint">2D Shop Drawing</div>
+              <ShopDrawing part={part} svgId={svgId} />
+            </div>
+          )}
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
