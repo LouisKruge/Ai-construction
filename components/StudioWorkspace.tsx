@@ -183,7 +183,13 @@ export default function StudioWorkspace() {
   };
   const onImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) s.setModelSource(URL.createObjectURL(f));
+    if (!f) return;
+    const ext = (f.name.split(".").pop() || "glb").toLowerCase();
+    s.setModelSource(`${URL.createObjectURL(f)}#${ext}`);
+  };
+  const onLoadUrl = () => {
+    const u = window.prompt("Load a 3D model from a URL (.glb, .gltf, .fbx, .obj):");
+    if (u && u.trim()) s.setModelSource(u.trim());
   };
 
   return (
@@ -235,6 +241,7 @@ export default function StudioWorkspace() {
                 <ToolButton active={s.modelSource === "parametric"} onClick={() => s.setModelSource("parametric")}>Parametric</ToolButton>
                 <ToolButton active={s.modelSource === "reference"} onClick={() => s.setModelSource("reference")}>Reference GLB</ToolButton>
                 <ToolButton active={s.modelSource !== "parametric" && s.modelSource !== "reference"} onClick={() => fileRef.current?.click()}>⇪ Import</ToolButton>
+                <ToolButton onClick={onLoadUrl}>⇧ URL</ToolButton>
               </>
             )}
             {s.mode === "plans" && (
@@ -283,7 +290,7 @@ export default function StudioWorkspace() {
           ) : is3D ? (
             <ExportBtn onClick={snapshot3D}>PNG snapshot</ExportBtn>
           ) : null}
-          <input ref={fileRef} type="file" accept=".glb,.gltf" className="hidden" onChange={onImport} />
+          <input ref={fileRef} type="file" accept=".glb,.gltf,.fbx,.obj" className="hidden" onChange={onImport} />
         </div>
 
         {/* inspector */}

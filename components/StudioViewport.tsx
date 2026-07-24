@@ -1,35 +1,44 @@
 "use client";
 
 import { useEffect, useMemo, useRef, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, ContactShadows, Environment, useGLTF, Html } from "@react-three/drei";
+import { OrbitControls, ContactShadows, Environment, useGLTF, Html, AdaptiveDpr, AdaptiveEvents } from "@react-three/drei";
+import { EffectComposer, Bloom, Vignette, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { RealisticTower, type TowerVariant } from "@/components/RealisticTower";
 import { useStudio, MATERIALS, CLASHES, type RenderMode } from "@/lib/studioStore";
 import { buildingSystems } from "@/lib/systems";
+import { fitToStage } from "@/lib/threeFit";
 
 const DRACO = "/draco/gltf/";
 
-// A real GLB/GLTF asset, auto-fit to the stage.
+// FBX / OBJ loaders are heavier and rarely used — load them on demand.
+const FbxModel = dynamic(() => import("@/components/loaders/FbxModel"), { ssr: false });
+const ObjModel = dynamic(() => import("@/components/loaders/ObjModel"), { ssr: false });
+
+// ── Asset Manager — loads GLB / GLTF (Draco) / FBX / OBJ by extension ──
+function extOf(url: string): "glb" | "gltf" | "fbx" | "obj" {
+  const hash = url.split("#")[1];
+  if (hash === "fbx" || hash === "obj" || hash === "gltf" || hash === "glb") return hash;
+  const clean = url.split("#")[0].split("?")[0].toLowerCase();
+  if (clean.endsWith(".fbx")) return "fbx";
+  if (clean.endsWith(".obj")) return "obj";
+  if (clean.endsWith(".gltf")) return "gltf";
+  return "glb";
+}
+
 function GlbModel({ url }: { url: string }) {
   const { scene } = useGLTF(url, DRACO);
-  const fitted = useMemo(() => {
-    const obj = scene.clone(true);
-    const box = new THREE.Box3().setFromObject(obj);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
-    const s = 14 / (Math.max(size.x, size.y, size.z) || 1);
-    obj.scale.setScalar(s);
-    obj.position.set(-center.x * s, -box.min.y * s, -center.z * s);
-    obj.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; }
-    });
-    return obj;
-  }, [scene]);
+  const fitted = useMemo(() => fitToStage(scene), [scene]);
   return <primitive object={fitted} />;
+}
+function AssetModel({ url }: { url: string }) {
+  const ext = extOf(url);
+  const src = url.split("#")[0];
+  if (ext === "fbx") return <FbxModel url={src} />;
+  if (ext === "obj") return <ObjModel url={src} />;
+  return <GlbModel url={src} />;
 }
 useGLTF.preload("/models/littlest-tokyo.glb", DRACO);
 
@@ -139,7 +148,7 @@ function Building() {
       <group ref={groupRef}>
         {glbUrl ? (
           <Suspense fallback={null}>
-            <GlbModel url={glbUrl} />
+            <AssetModel url={glbUrl} />
           </Suspense>
         ) : (
           <RealisticTower
@@ -194,6 +203,14 @@ export default function StudioViewport() {
         <Building />
         <Warmup />
         <OrbitControls makeDefault enablePan enableDamping dampingFactor={0.08} minDistance={16} maxDistance={60} maxPolarAngle={Math.PI / 2.1} target={[0, 7, 0]} />
+        {/* cinematic post — subtle bloom on glass/lights, crisp AA, gentle vignette */}
+        <EffectComposer enableNormalPass={false} multisampling={0}>
+          <Bloom intensity={0.5} luminanceThreshold={0.72} luminanceSmoothing={0.22} mipmapBlur radius={0.7} />
+          <Vignette offset={0.22} darkness={0.62} eskil={false} />
+          <SMAA />
+        </EffectComposer>
+        <AdaptiveDpr pixelated />
+        <AdaptiveEvents />
       </Suspense>
     </Canvas>
   );
