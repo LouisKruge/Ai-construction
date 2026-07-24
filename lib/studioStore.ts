@@ -50,6 +50,9 @@ export interface StudioState {
   timeOfDay: number; // hours 5..20
   // element visibility
   hidden: Record<string, boolean>;
+  // model source: "parametric" | "reference" (bundled GLB) | blob/asset URL
+  modelSource: string;
+  showClashes: boolean;
 
   setMode: (m: StudioMode) => void;
   setRenderMode: (r: RenderMode) => void;
@@ -62,7 +65,27 @@ export interface StudioState {
   setWidth: (n: number) => void;
   setDepth: (n: number) => void;
   toggleHidden: (id: string) => void;
+  setModelSource: (s: string) => void;
+  setShowClashes: (b: boolean) => void;
 }
+
+export interface Clash {
+  id: string;
+  disciplines: string;
+  severity: "high" | "med" | "low";
+  pos: [number, number, number];
+  desc: string;
+  status: "Open" | "In review" | "Resolved";
+}
+
+// clash positions are in the tower's local space (footprint ±7 × ±5, 0..16 tall)
+export const CLASHES: Clash[] = [
+  { id: "CL-014", disciplines: "HVAC × Structure", severity: "high", pos: [2.4, 9.2, 1.8], desc: "Ø400 supply duct clashes with transfer beam at L18", status: "Open" },
+  { id: "CL-021", disciplines: "Plumbing × Electrical", severity: "med", pos: [-3.1, 6.4, -1.2], desc: "Soil stack routes through main cable tray riser", status: "Open" },
+  { id: "CL-027", disciplines: "Sprinkler × Ceiling", severity: "low", pos: [1.0, 12.6, -2.6], desc: "Sprinkler main below finished ceiling zone", status: "In review" },
+  { id: "CL-031", disciplines: "Structure × Façade", severity: "high", pos: [4.2, 4.1, 2.2], desc: "Curtain-wall bracket fouls perimeter column at L8", status: "Open" },
+  { id: "CL-009", disciplines: "MEP × MEP", severity: "med", pos: [-2.2, 2.2, 1.0], desc: "Chilled-water pipe crosses busbar in podium plant", status: "Resolved" },
+];
 
 export const useStudio = create<StudioState>((set) => ({
   floors: 22,
@@ -78,6 +101,8 @@ export const useStudio = create<StudioState>((set) => ({
   selected: null,
   timeOfDay: 17.5,
   hidden: {},
+  modelSource: "parametric",
+  showClashes: false,
 
   setMode: (mode) => set({ mode }),
   setRenderMode: (renderMode) => set({ renderMode }),
@@ -90,6 +115,8 @@ export const useStudio = create<StudioState>((set) => ({
   setWidth: (width) => set({ width: clamp(width, 18, 60) }),
   setDepth: (depth) => set({ depth: clamp(depth, 14, 44) }),
   toggleHidden: (id) => set((s) => ({ hidden: { ...s.hidden, [id]: !s.hidden[id] } })),
+  setModelSource: (modelSource) => set({ modelSource }),
+  setShowClashes: (showClashes) => set({ showClashes }),
 }));
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));

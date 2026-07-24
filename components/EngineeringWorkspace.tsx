@@ -3,7 +3,33 @@
 import DisciplineWorkspace, { Row, type WsTab } from "@/components/DisciplineWorkspace";
 import StructuralCalculator from "@/components/StructuralCalculator";
 import RebarDetail from "@/components/RebarDetail";
-import { useStudio, metrics } from "@/lib/studioStore";
+import { useStudio, metrics, CLASHES } from "@/lib/studioStore";
+
+function ClashList() {
+  const col = { high: "text-critical", med: "text-caution", low: "text-info" } as const;
+  const open = CLASHES.filter((c) => c.status !== "Resolved").length;
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">Clash Report</h4>
+        <span className="rounded-full bg-critical/15 px-2 py-0.5 text-[10px] font-medium text-critical">{open} open</span>
+      </div>
+      <div className="space-y-1.5">
+        {CLASHES.map((c) => (
+          <div key={c.id} className="rounded-lg border border-edge bg-base/40 p-2">
+            <div className="flex items-center justify-between text-[12px]">
+              <span className="font-mono text-fg">{c.id}</span>
+              <span className={`text-[10px] font-semibold uppercase ${col[c.severity]}`}>{c.severity}</span>
+            </div>
+            <div className="text-[11px] text-fg-muted">{c.disciplines}</div>
+            <div className="mt-0.5 text-[10px] text-fg-faint">{c.desc}</div>
+            <div className={`mt-1 text-[10px] font-medium ${c.status === "Resolved" ? "text-positive" : c.status === "In review" ? "text-caution" : "text-critical"}`}>{c.status}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function MemberInspector() {
   const s = useStudio();
@@ -96,10 +122,12 @@ const I = {
   rebar: <path d="M4 6 h16 M4 12 h16 M4 18 h16 M8 4 v16 M16 4 v16" />,
   loads: <path d="M12 3 v10 M8 9 l4 4 l4 -4 M5 20 h14" />,
   compliance: <path d="M12 3 l7 3 v5 c0 4 -3 7 -7 9 c-4 -2 -7 -5 -7 -9 V6 z M9 12 l2 2 l4 -4" />,
+  clash: <path d="M13 2 L3 14 h7 l-1 8 l10 -12 h-7 z" />,
 };
 
 const tabs: WsTab[] = [
   { id: "structure", label: "Structure", icon: I.structure, is3D: true, renderMode: "structural", ai: "Explain this structural frame and suggest a more efficient column grid and stability system.", inspector: <MemberInspector /> },
+  { id: "clashes", label: "Clashes", icon: I.clash, is3D: true, renderMode: "xray", clashes: true, ai: "Prioritise the open clashes by risk and propose the sequence to resolve them.", inspector: <ClashList /> },
   { id: "checks", label: "Design Checks", icon: I.checks, ai: "Review the structural design checks and flag any members close to their limit-state capacity.", content: <StructuralCalculator /> },
   { id: "rebar", label: "Reinforcement", icon: I.rebar, ai: "Optimise the reinforcement detailing and bar bending schedule to reduce steel tonnage.", content: <RebarDetail /> },
   { id: "loads", label: "Loads", icon: I.loads, ai: "Check the load take-down and combinations against SANS 10160.", content: <LoadsPanel /> },

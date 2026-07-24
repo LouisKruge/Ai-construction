@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useStudio, MATERIALS, metrics, fmtR, type StudioMode, type RenderMode } from "@/lib/studioStore";
+import { exportSVG, exportPNG, exportPDF, exportDXF, exportCanvasPNG } from "@/lib/exporters";
 
 const StudioViewport = dynamic(() => import("@/components/StudioViewport"), {
   ssr: false,
@@ -162,6 +163,28 @@ export default function StudioWorkspace() {
   const is3D = s.mode === "3d" || s.mode === "materials" || s.mode === "lighting" || s.mode === "analysis";
 
   const elevFaces = ["North", "South", "East", "West"];
+  useEffect(() => { useStudio.getState().setShowClashes(false); }, []);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const drawingName = s.mode === "plans" ? `L${s.activeFloor}-GA-plan` : s.mode === "sections" ? "section-AA" : `${elevFaces[s.activeFloor % 4]}-elevation`;
+  const svg = () => stageRef.current?.querySelector("svg") as SVGSVGElement | null;
+  const doExport = (kind: "svg" | "png" | "pdf" | "dxf") => {
+    if (kind === "dxf") return exportDXF({ width: s.width, depth: s.depth, name: drawingName });
+    const el = svg();
+    if (!el) return;
+    if (kind === "svg") exportSVG(el, drawingName);
+    if (kind === "png") exportPNG(el, drawingName);
+    if (kind === "pdf") exportPDF(el, drawingName);
+  };
+  const snapshot3D = () => {
+    const c = stageRef.current?.querySelector("canvas") as HTMLCanvasElement | null;
+    if (c) exportCanvasPNG(c, "view-3d");
+  };
+  const onImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) s.setModelSource(URL.createObjectURL(f));
+  };
 
   return (
     <div className="glass glow sheen relative overflow-hidden rounded-2xl">
@@ -191,7 +214,7 @@ export default function StudioWorkspace() {
 
       {/* stage + inspector */}
       <div className="space-y-3 border-t border-edge p-3">
-        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-edge bg-base">
+        <div ref={stageRef} className="relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-edge bg-base">
           {/* stage content */}
           {is3D ? (
             <StudioViewport />
@@ -206,6 +229,14 @@ export default function StudioWorkspace() {
           {/* floating toolbar (top-left) */}
           <div className="pointer-events-auto absolute left-3 top-3 flex flex-wrap gap-1.5">
             {s.mode === "3d" && renderModes.map((r) => <ToolButton key={r} active={s.renderMode === r} onClick={() => s.setRenderMode(r)}>{r}</ToolButton>)}
+            {s.mode === "3d" && (
+              <>
+                <span className="mx-1 w-px self-stretch bg-edge" />
+                <ToolButton active={s.modelSource === "parametric"} onClick={() => s.setModelSource("parametric")}>Parametric</ToolButton>
+                <ToolButton active={s.modelSource === "reference"} onClick={() => s.setModelSource("reference")}>Reference GLB</ToolButton>
+                <ToolButton active={s.modelSource !== "parametric" && s.modelSource !== "reference"} onClick={() => fileRef.current?.click()}>⇪ Import</ToolButton>
+              </>
+            )}
             {s.mode === "plans" && (
               <div className="flex items-center gap-1.5">
                 <ToolButton onClick={() => s.setActiveFloor(Math.max(0, s.activeFloor - 1))}>▼</ToolButton>
@@ -239,12 +270,36 @@ export default function StudioWorkspace() {
           </button>
         </div>
 
+        {/* export bar */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[10px] uppercase tracking-widest text-fg-faint">Export</span>
+          {(s.mode === "plans" || s.mode === "sections" || s.mode === "elevations") ? (
+            <>
+              <ExportBtn onClick={() => doExport("pdf")}>PDF</ExportBtn>
+              <ExportBtn onClick={() => doExport("png")}>PNG</ExportBtn>
+              <ExportBtn onClick={() => doExport("svg")}>SVG</ExportBtn>
+              {s.mode === "plans" && <ExportBtn onClick={() => doExport("dxf")}>DXF · CAD</ExportBtn>}
+            </>
+          ) : is3D ? (
+            <ExportBtn onClick={snapshot3D}>PNG snapshot</ExportBtn>
+          ) : null}
+          <input ref={fileRef} type="file" accept=".glb,.gltf" className="hidden" onChange={onImport} />
+        </div>
+
         {/* inspector */}
         <div className="rounded-xl border border-edge bg-base/40 p-3">
           <Inspector />
         </div>
       </div>
     </div>
+  );
+}
+
+function ExportBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className="flex items-center gap-1 rounded-md border border-edge px-2 py-0.5 text-[11px] text-fg-muted transition hover:border-edge-strong hover:text-fg">
+      ↧ {children}
+    </button>
   );
 }
 

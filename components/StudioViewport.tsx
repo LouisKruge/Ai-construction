@@ -1,11 +1,60 @@
 "use client";
 
-import { useEffect, useRef, Suspense } from "react";
+import { useEffect, useMemo, useRef, Suspense } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, ContactShadows, Environment } from "@react-three/drei";
+import { OrbitControls, ContactShadows, Environment, useGLTF, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { RealisticTower, type TowerVariant } from "@/components/RealisticTower";
-import { useStudio, MATERIALS, type RenderMode } from "@/lib/studioStore";
+import { useStudio, MATERIALS, CLASHES, type RenderMode } from "@/lib/studioStore";
+
+const DRACO = "/draco/gltf/";
+
+// A real GLB/GLTF asset, auto-fit to the stage.
+function GlbModel({ url }: { url: string }) {
+  const { scene } = useGLTF(url, DRACO);
+  const fitted = useMemo(() => {
+    const obj = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    const s = 14 / (Math.max(size.x, size.y, size.z) || 1);
+    obj.scale.setScalar(s);
+    obj.position.set(-center.x * s, -box.min.y * s, -center.z * s);
+    obj.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; }
+    });
+    return obj;
+  }, [scene]);
+  return <primitive object={fitted} />;
+}
+useGLTF.preload("/models/littlest-tokyo.glb", DRACO);
+
+// Clash markers floating in the model volume.
+function ClashMarkers() {
+  const col = { high: "#fb7185", med: "#fbbf24", low: "#38bdf8" } as const;
+  return (
+    <group>
+      {CLASHES.filter((c) => c.status !== "Resolved").map((c) => (
+        <group key={c.id} position={c.pos}>
+          <mesh>
+            <sphereGeometry args={[0.35, 16, 16]} />
+            <meshStandardMaterial color={col[c.severity]} emissive={col[c.severity]} emissiveIntensity={1.4} />
+          </mesh>
+          <mesh>
+            <sphereGeometry args={[0.7, 16, 16]} />
+            <meshBasicMaterial color={col[c.severity]} transparent opacity={0.18} />
+          </mesh>
+          <Html center distanceFactor={26} className="pointer-events-none">
+            <span className="whitespace-nowrap rounded border border-edge bg-base/85 px-1.5 py-0.5 font-mono text-[9px] text-fg backdrop-blur">{c.id}</span>
+          </Html>
+        </group>
+      ))}
+    </group>
+  );
+}
 
 // Applies the active render mode to every mesh in the building group.
 function ModeOverride({ groupRef, mode }: { groupRef: React.RefObject<THREE.Group | null>; mode: RenderMode }) {
@@ -55,8 +104,15 @@ function Sun({ hour }: { hour: number }) {
 }
 
 function Building() {
-  const { floors, width, depth, facadeMaterialId, renderMode, timeOfDay } = useStudio();
+  const { floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes } = useStudio();
   const groupRef = useRef<THREE.Group>(null);
+  const invalidate = useThree((s) => s.invalidate);
+  // re-render the on-demand canvas whenever the model changes
+  useEffect(() => {
+    let n = 0;
+    const id = setInterval(() => { invalidate(); if (++n > 12) clearInterval(id); }, 90);
+    return () => clearInterval(id);
+  }, [invalidate, floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes]);
   const mat = MATERIALS.find((m) => m.id === facadeMaterialId)!;
   const v: TowerVariant = {
     id: "studio",
@@ -68,14 +124,22 @@ function Building() {
     podiumFloors: 3,
   };
   const night = timeOfDay < 6.5 || timeOfDay > 18.5;
+  const glbUrl = modelSource === "parametric" ? null : modelSource === "reference" ? "/models/littlest-tokyo.glb" : modelSource;
   return (
     <>
       <Sun hour={timeOfDay} />
       <hemisphereLight args={["#9fb0d8", "#0e1730", night ? 0.35 : 0.7]} />
       <group ref={groupRef}>
-        <RealisticTower v={v} simple />
+        {glbUrl ? (
+          <Suspense fallback={null}>
+            <GlbModel url={glbUrl} />
+          </Suspense>
+        ) : (
+          <RealisticTower v={v} simple />
+        )}
       </group>
       <ModeOverride groupRef={groupRef} mode={renderMode} />
+      {showClashes && <ClashMarkers />}
       {/* ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <circleGeometry args={[60, 64]} />
@@ -109,7 +173,7 @@ export default function StudioViewport() {
       dpr={[1, 1.5]}
       frameloop="demand"
       camera={{ position: [22, 14, 26], fov: 32 }}
-      gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
+      gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
       className="h-full w-full"
     >
       <Suspense fallback={null}>

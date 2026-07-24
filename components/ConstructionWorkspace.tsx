@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import DisciplineWorkspace, { Row, type WsTab } from "@/components/DisciplineWorkspace";
-import CriticalPath from "@/components/CriticalPath";
+import EditableProgramme from "@/components/EditableProgramme";
 import EvmPanel from "@/components/EvmPanel";
 import { useStudio } from "@/lib/studioStore";
 
@@ -90,7 +90,7 @@ const I = {
 
 const tabs: WsTab[] = [
   { id: "site", label: "Site", icon: I.site, is3D: true, renderMode: "shaded", ai: "Assess site logistics and crane coverage for this tower and suggest an optimal sequence.", inspector: <SiteInspector /> },
-  { id: "programme", label: "Programme", icon: I.programme, ai: "Explain the critical path and where the programme is most at risk of slipping.", content: <CriticalPath /> },
+  { id: "programme", label: "Programme", icon: I.programme, ai: "Explain the critical path and where the programme is most at risk of slipping.", content: <EditableProgramme /> },
   { id: "4d", label: "4D Sequence", icon: I.fourd, ai: "Review the construction sequence and identify opportunities to compress the programme.", content: <FourD /> },
   { id: "evm", label: "Earned Value", icon: I.evm, ai: "Interpret the earned-value metrics (CPI/SPI/EAC) and recommend corrective action.", content: <EvmPanel /> },
   { id: "safety", label: "Safety", icon: I.safety, ai: "Summarise the safety performance and the top risks to address this week.", content: <SafetyPanel /> },
