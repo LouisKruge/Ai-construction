@@ -53,6 +53,10 @@ export interface StudioState {
   // model source: "parametric" | "reference" (bundled GLB) | blob/asset URL
   modelSource: string;
   showClashes: boolean;
+  // construction progress (Construction Studio · Site)
+  constructionMode: boolean;
+  structFloors: number; // floors with structural frame complete
+  facadeFloors: number; // floors glazed / fitted-out (≤ structFloors)
 
   setMode: (m: StudioMode) => void;
   setRenderMode: (r: RenderMode) => void;
@@ -67,6 +71,9 @@ export interface StudioState {
   toggleHidden: (id: string) => void;
   setModelSource: (s: string) => void;
   setShowClashes: (b: boolean) => void;
+  setConstructionMode: (b: boolean) => void;
+  setStructFloors: (n: number) => void;
+  setFacadeFloors: (n: number) => void;
 }
 
 export interface Clash {
@@ -103,6 +110,9 @@ export const useStudio = create<StudioState>((set) => ({
   hidden: {},
   modelSource: "parametric",
   showClashes: false,
+  constructionMode: false,
+  structFloors: 16,
+  facadeFloors: 12,
 
   setMode: (mode) => set({ mode }),
   setRenderMode: (renderMode) => set({ renderMode }),
@@ -117,6 +127,13 @@ export const useStudio = create<StudioState>((set) => ({
   toggleHidden: (id) => set((s) => ({ hidden: { ...s.hidden, [id]: !s.hidden[id] } })),
   setModelSource: (modelSource) => set({ modelSource }),
   setShowClashes: (showClashes) => set({ showClashes }),
+  setConstructionMode: (constructionMode) => set({ constructionMode }),
+  setStructFloors: (n) =>
+    set((s) => {
+      const structFloors = clamp(Math.round(n), 0, s.floors);
+      return { structFloors, facadeFloors: Math.min(s.facadeFloors, structFloors) };
+    }),
+  setFacadeFloors: (n) => set((s) => ({ facadeFloors: clamp(Math.round(n), 0, s.structFloors) })),
 }));
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));

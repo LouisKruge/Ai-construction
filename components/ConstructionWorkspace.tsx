@@ -7,17 +7,53 @@ import EvmPanel from "@/components/EvmPanel";
 import InstallationPanel from "@/components/InstallationPanel";
 import { useStudio } from "@/lib/studioStore";
 
-function SiteInspector() {
+function SiteProgress() {
+  const floors = useStudio((s) => s.floors);
+  const structFloors = useStudio((s) => s.structFloors);
+  const facadeFloors = useStudio((s) => s.facadeFloors);
+  const setStructFloors = useStudio((s) => s.setStructFloors);
+  const setFacadeFloors = useStudio((s) => s.setFacadeFloors);
+  const overall = Math.round(((structFloors * 0.6 + facadeFloors * 0.4) / floors) * 100);
+  const phase =
+    structFloors >= floors ? "Topping out / fit-out" : structFloors > floors * 0.35 ? "Superstructure" : structFloors > 0 ? "Substructure → podium" : "Enabling works";
+  const presets: [string, number, number][] = [
+    ["Groundworks", 1, 0],
+    ["Podium done", 4, 3],
+    ["Mid-rise", 13, 9],
+    ["Topped out", floors, Math.round(floors * 0.7)],
+    ["Handover", floors, floors],
+  ];
   return (
     <div>
-      <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">Site Status</h4>
-      <div className="rounded-lg border border-edge bg-base/40 p-2">
-        <Row k="Phase" v="Superstructure" />
-        <Row k="Tower cranes" v="2 × luffing" />
+      <div className="mb-2 flex items-center justify-between">
+        <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">Construction Progress</h4>
+        <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">{overall}% complete</span>
+      </div>
+
+      {/* live-driven sliders — the 3D model builds up to these floors */}
+      <div className="space-y-3 rounded-lg border border-edge bg-base/40 p-3">
+        <div>
+          <div className="mb-1 flex justify-between text-[11px]"><span className="text-fg-muted">Structure / frame</span><span className="font-mono text-accent">L{structFloors} / {floors}</span></div>
+          <input type="range" min={0} max={floors} value={structFloors} onChange={(e) => setStructFloors(Number(e.target.value))} className="w-full accent-[var(--color-accent)]" />
+        </div>
+        <div>
+          <div className="mb-1 flex justify-between text-[11px]"><span className="text-fg-muted">Façade / fit-out</span><span className="font-mono text-accent-2">L{facadeFloors} / {floors}</span></div>
+          <input type="range" min={0} max={structFloors} value={facadeFloors} onChange={(e) => setFacadeFloors(Number(e.target.value))} className="w-full accent-[var(--color-accent)]" />
+          <p className="mt-1 text-[10px] text-fg-faint">Glazed &amp; serviced floors light up; frame-only floors show bare structure above, with the tower crane at the top pour.</p>
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {presets.map(([label, s, f]) => (
+            <button key={label} onClick={() => { setStructFloors(s); setFacadeFloors(f); }} className="rounded-md border border-edge px-2 py-0.5 text-[10px] text-fg-muted transition hover:border-accent hover:text-fg">{label}</button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-2 rounded-lg border border-edge bg-base/40 p-2">
+        <Row k="Phase" v={phase} tone="text-accent" />
+        <Row k="Floors framed" v={`${structFloors} / ${floors}`} />
+        <Row k="Floors fitted-out" v={`${facadeFloors} / ${floors}`} />
+        <Row k="Tower cranes" v={structFloors >= floors ? "Dismantling" : "2 × luffing"} />
         <Row k="Workforce on site" v="1,384" />
-        <Row k="Floors cast" v="14 / 22" tone="text-accent" />
-        <Row k="Deliveries today" v="18" />
-        <Row k="Weather" v="Clear · 24°C" />
         <Row k="Incidents (30d)" v="0" tone="text-positive" />
       </div>
     </div>
@@ -91,7 +127,7 @@ const I = {
 };
 
 const tabs: WsTab[] = [
-  { id: "site", label: "Site", icon: I.site, is3D: true, renderMode: "shaded", ai: "Assess site logistics and crane coverage for this tower and suggest an optimal sequence.", inspector: <SiteInspector /> },
+  { id: "site", label: "Site", icon: I.site, is3D: true, renderMode: "shaded", construction: true, ai: "Assess site logistics and crane coverage for this tower and suggest an optimal sequence.", inspector: <SiteProgress /> },
   { id: "programme", label: "Programme", icon: I.programme, ai: "Explain the critical path and where the programme is most at risk of slipping.", content: <EditableProgramme /> },
   { id: "4d", label: "4D Sequence", icon: I.fourd, ai: "Review the construction sequence and identify opportunities to compress the programme.", content: <FourD /> },
   { id: "install", label: "Installation", icon: I.install, ai: "Track part delivery-to-install and flag which zones are waiting on fabricated parts.", content: <InstallationPanel /> },

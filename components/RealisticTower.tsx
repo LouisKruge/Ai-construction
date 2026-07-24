@@ -69,7 +69,60 @@ function Fins({ w, d, height, yBase }: { w: number; h?: number; d: number; heigh
   );
 }
 
-export function RealisticTower({ v, simple = false }: { v: TowerVariant; simple?: boolean }) {
+// Tower crane parked beside the building, reaching just above the top pour.
+function Crane({ v, topH }: { v: TowerVariant; topH: number }) {
+  const mastX = -(v.w / 2 + 3.6);
+  const mastZ = -(v.d / 2 + 0.5);
+  const jibLen = v.w + 7;
+  const counterLen = 4.5;
+  const hookX = mastX + jibLen * 0.42;
+  const metal = <meshStandardMaterial color="#e6b34a" metalness={0.5} roughness={0.55} />;
+  const dark = <meshStandardMaterial color="#3b4250" metalness={0.6} roughness={0.6} />;
+  return (
+    <group>
+      <mesh position={[mastX, topH / 2, mastZ]} castShadow>
+        <boxGeometry args={[0.55, topH, 0.55]} />
+        {metal}
+      </mesh>
+      {/* operator cab */}
+      <mesh position={[mastX + 0.6, topH - 0.4, mastZ]} castShadow>
+        <boxGeometry args={[0.9, 0.9, 0.9]} />
+        {dark}
+      </mesh>
+      {/* jib */}
+      <mesh position={[mastX + jibLen / 2 - counterLen / 2, topH + 0.4, mastZ]} castShadow>
+        <boxGeometry args={[jibLen, 0.3, 0.3]} />
+        {metal}
+      </mesh>
+      {/* counter-jib + ballast */}
+      <mesh position={[mastX - counterLen, topH + 0.4, mastZ]} castShadow>
+        <boxGeometry args={[1.4, 1.0, 1.0]} />
+        {dark}
+      </mesh>
+      {/* hoist cable + hook block */}
+      <mesh position={[hookX, topH - 1.6, mastZ]}>
+        <cylinderGeometry args={[0.03, 0.03, 4, 6]} />
+        <meshBasicMaterial color="#cbd5e1" />
+      </mesh>
+      <mesh position={[hookX, topH - 3.7, mastZ]} castShadow>
+        <boxGeometry args={[0.35, 0.35, 0.35]} />
+        {dark}
+      </mesh>
+    </group>
+  );
+}
+
+export function RealisticTower({
+  v,
+  simple = false,
+  structTo,
+  facadeTo,
+}: {
+  v: TowerVariant;
+  simple?: boolean;
+  structTo?: number; // construction: floors with frame complete (undefined = finished building)
+  facadeTo?: number; // construction: floors glazed / fitted-out (≤ structTo)
+}) {
   const glassMat = useMemo(
     () => (
       <meshPhysicalMaterial
@@ -87,9 +140,19 @@ export function RealisticTower({ v, simple = false }: { v: TowerVariant; simple?
   );
   const concrete = <meshStandardMaterial color="#8b95a3" metalness={0.1} roughness={0.85} />;
   const metal = <meshStandardMaterial color="#aeb8c6" metalness={0.92} roughness={0.4} />;
+  const frameMat = <meshStandardMaterial color="#9aa2ac" metalness={0.15} roughness={0.92} />; // raw concrete frame
+
+  // ── construction progress ────────────────────────────────────────────────
+  const construction = structTo !== undefined;
+  const clampN = (x: number) => Math.max(0, Math.min(v.floors, x));
+  const sTo = construction ? clampN(structTo!) : v.floors; // structure height
+  const fTo = construction ? Math.max(0, Math.min(sTo, facadeTo ?? sTo)) : v.floors; // glazing height
+  const complete = sTo >= v.floors;
 
   const podiumH = v.podiumFloors * FLOOR_H;
-  const shaftH = v.floors * FLOOR_H;
+  const shaftH = v.floors * FLOOR_H; // full — used for stage normalization
+  const glazedH = fTo * FLOOR_H;
+  const structH = sTo * FLOOR_H;
   const pw = v.w + 8;
   const pd = v.d + 6;
   // normalize every variant to a consistent ~16-unit stage height
@@ -98,7 +161,7 @@ export function RealisticTower({ v, simple = false }: { v: TowerVariant; simple?
 
   return (
     <group scale={S}>
-      {/* ── podium ── */}
+      {/* ── podium (foundations + podium built first) ── */}
       <mesh position={[0, podiumH / 2, 0]} castShadow receiveShadow>
         <boxGeometry args={[pw - 0.5, podiumH, pd - 0.5]} />
         {glassMat}
@@ -115,32 +178,37 @@ export function RealisticTower({ v, simple = false }: { v: TowerVariant; simple?
         {metal}
       </mesh>
 
-      {/* ── tower shaft glass ── */}
-      <mesh position={[0, podiumH + shaftH / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[v.w - 0.3, shaftH, v.d - 0.3]} />
-        {glassMat}
-      </mesh>
-      {/* floor slabs + spandrels + lit interiors + balconies */}
-      {Array.from({ length: v.floors + 1 }).map((_, i) => {
+      {/* ── tower shaft glazing — only the fitted-out floors ── */}
+      {fTo > 0 && (
+        <mesh position={[0, podiumH + glazedH / 2, 0]} castShadow receiveShadow>
+          <boxGeometry args={[v.w - 0.3, glazedH, v.d - 0.3]} />
+          {glassMat}
+        </mesh>
+      )}
+      {/* floor slabs up to structure; lit interiors only where fitted-out */}
+      {Array.from({ length: sTo + 1 }).map((_, i) => {
         const y = podiumH + i * FLOOR_H;
-        const lit = (i * 5 + 3) % 7 < 3; // interior lighting on ~40% of floors
-        const balcony = i > 3 && i < v.floors - 1 && (i * 3 + 1) % 4 === 0;
+        const glazed = i <= fTo;
+        const lit = glazed && (i * 5 + 3) % 7 < 3; // interior lighting on ~40% of fitted floors
+        const balcony = !construction && i > 3 && i < v.floors - 1 && (i * 3 + 1) % 4 === 0;
         return (
           <group key={`fl${i}`}>
             <mesh position={[0, y, 0]} castShadow>
               <boxGeometry args={[v.w + 0.15, 0.22, v.d + 0.15]} />
               {concrete}
             </mesh>
-            <mesh position={[0, y - FLOOR_H * 0.32, 0]}>
-              <boxGeometry args={[v.w + 0.05, 0.7, v.d + 0.05]} />
-              <meshStandardMaterial
-                color={lit ? "#ffdba0" : "#3b4658"}
-                emissive={lit ? "#ffcf8a" : "#000000"}
-                emissiveIntensity={lit ? 0.7 : 0}
-                metalness={0.5}
-                roughness={0.5}
-              />
-            </mesh>
+            {glazed && (
+              <mesh position={[0, y - FLOOR_H * 0.32, 0]}>
+                <boxGeometry args={[v.w + 0.05, 0.7, v.d + 0.05]} />
+                <meshStandardMaterial
+                  color={lit ? "#ffdba0" : "#3b4658"}
+                  emissive={lit ? "#ffcf8a" : "#000000"}
+                  emissiveIntensity={lit ? 0.7 : 0}
+                  metalness={0.5}
+                  roughness={0.5}
+                />
+              </mesh>
+            )}
             {balcony && !simple && (
               <group>
                 <mesh position={[0, y - 0.4, v.d / 2 + 0.7]} castShadow>
@@ -156,56 +224,85 @@ export function RealisticTower({ v, simple = false }: { v: TowerVariant; simple?
           </group>
         );
       })}
-      {/* corner columns */}
-      {[[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sz], i) => (
-        <mesh key={`c${i}`} position={[(sx * v.w) / 2, podiumH + shaftH / 2, (sz * v.d) / 2]} castShadow>
-          <boxGeometry args={[0.45, shaftH, 0.45]} />
-          {metal}
-        </mesh>
-      ))}
-      {/* mullions */}
-      <Fins w={v.w} d={v.d} height={shaftH} yBase={podiumH} />
+      {/* perimeter columns to structure height (bare frame above the glazing) */}
+      {structH > 0 &&
+        [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sz], i) => (
+          <mesh key={`c${i}`} position={[(sx * v.w) / 2, podiumH + structH / 2, (sz * v.d) / 2]} castShadow>
+            <boxGeometry args={[0.45, structH, 0.45]} />
+            {metal}
+          </mesh>
+        ))}
+      {/* interior frame columns exposed in the structure-only (un-glazed) zone */}
+      {construction &&
+        sTo > fTo &&
+        [[-0.42, 0], [0.42, 0], [0, -0.42], [0, 0.42]].map(([fx, fz], i) => {
+          const zoneH = (sTo - fTo) * FLOOR_H;
+          return (
+            <mesh key={`ic${i}`} position={[fx * v.w, podiumH + fTo * FLOOR_H + zoneH / 2, fz * v.d]} castShadow>
+              <boxGeometry args={[0.32, zoneH, 0.32]} />
+              {frameMat}
+            </mesh>
+          );
+        })}
+      {/* starter/rebar bars poking above the top pour */}
+      {construction && !complete &&
+        [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5], [0, 0]].map(([fx, fz], i) => (
+          <mesh key={`rb${i}`} position={[fx * v.w * 0.7, podiumH + structH + 0.5, fz * v.d * 0.7]}>
+            <cylinderGeometry args={[0.05, 0.05, 1.0, 6]} />
+            <meshStandardMaterial color="#8a6a4a" roughness={0.95} />
+          </mesh>
+        ))}
+      {/* mullions only where glazed */}
+      {fTo > 0 && <Fins w={v.w} d={v.d} height={glazedH} yBase={podiumH} />}
 
-      {/* ── crown / rooftop plant ── */}
-      <mesh position={[0, podiumH + shaftH + 0.2, 0]} castShadow>
-        <boxGeometry args={[v.w + 0.2, 0.4, v.d + 0.2]} />
-        {metal}
-      </mesh>
-      <mesh position={[0, podiumH + shaftH + 1.6, 0]} castShadow>
-        <boxGeometry args={[v.w * 0.55, 2.6, v.d * 0.55]} />
-        {v.greenRoof ? <meshStandardMaterial color="#2f6a4a" roughness={0.9} /> : glassMat}
-      </mesh>
-      {!simple && (
+      {/* ── crown / rooftop plant — only once topped out ── */}
+      {complete && (
         <>
-          {/* rooftop mechanical equipment */}
-          {[[-0.26, 0.15], [0.24, -0.18], [0.05, 0.28]].map(([fx, fz], i) => (
-            <mesh key={`eq${i}`} position={[fx * v.w, podiumH + shaftH + 1.0, fz * v.d]} castShadow>
-              <boxGeometry args={[1.5, 1.1, 1.7]} />
-              {metal}
-            </mesh>
-          ))}
-          {[[-0.28, -0.2], [0.22, 0.24]].map(([fx, fz], i) => (
-            <mesh key={`cu${i}`} position={[fx * v.w, podiumH + shaftH + 1.1, fz * v.d]} castShadow>
-              <cylinderGeometry args={[0.55, 0.55, 0.9, 14]} />
-              <meshStandardMaterial color="#8b95a3" metalness={0.7} roughness={0.5} />
-            </mesh>
-          ))}
-          {/* rooftop parapet frame */}
-          {[[0, 1, v.d / 2], [0, 1, -v.d / 2]].map(([, , z], i) => (
-            <mesh key={`pa${i}`} position={[0, podiumH + shaftH + 0.7, z as number]}>
-              <boxGeometry args={[v.w + 0.2, 0.5, 0.1]} />
-              {metal}
-            </mesh>
-          ))}
+          <mesh position={[0, podiumH + shaftH + 0.2, 0]} castShadow>
+            <boxGeometry args={[v.w + 0.2, 0.4, v.d + 0.2]} />
+            {metal}
+          </mesh>
+          <mesh position={[0, podiumH + shaftH + 1.6, 0]} castShadow>
+            <boxGeometry args={[v.w * 0.55, 2.6, v.d * 0.55]} />
+            {v.greenRoof ? <meshStandardMaterial color="#2f6a4a" roughness={0.9} /> : glassMat}
+          </mesh>
+          {!simple && (
+            <>
+              {/* rooftop mechanical equipment */}
+              {[[-0.26, 0.15], [0.24, -0.18], [0.05, 0.28]].map(([fx, fz], i) => (
+                <mesh key={`eq${i}`} position={[fx * v.w, podiumH + shaftH + 1.0, fz * v.d]} castShadow>
+                  <boxGeometry args={[1.5, 1.1, 1.7]} />
+                  {metal}
+                </mesh>
+              ))}
+              {[[-0.28, -0.2], [0.22, 0.24]].map(([fx, fz], i) => (
+                <mesh key={`cu${i}`} position={[fx * v.w, podiumH + shaftH + 1.1, fz * v.d]} castShadow>
+                  <cylinderGeometry args={[0.55, 0.55, 0.9, 14]} />
+                  <meshStandardMaterial color="#8b95a3" metalness={0.7} roughness={0.5} />
+                </mesh>
+              ))}
+              {/* rooftop parapet frame */}
+              {[[0, 1, v.d / 2], [0, 1, -v.d / 2]].map(([, , z], i) => (
+                <mesh key={`pa${i}`} position={[0, podiumH + shaftH + 0.7, z as number]}>
+                  <boxGeometry args={[v.w + 0.2, 0.5, 0.1]} />
+                  {metal}
+                </mesh>
+              ))}
+            </>
+          )}
+          <mesh position={[0, podiumH + shaftH + 4.4, 0]}>
+            <cylinderGeometry args={[0.05, 0.05, 3, 8]} />
+            <meshStandardMaterial color="#dfe6f2" emissive="#8ea2ff" emissiveIntensity={0.4} />
+          </mesh>
         </>
       )}
-      <mesh position={[0, podiumH + shaftH + 4.4, 0]}>
-        <cylinderGeometry args={[0.05, 0.05, 3, 8]} />
-        <meshStandardMaterial color="#dfe6f2" emissive="#8ea2ff" emissiveIntensity={0.4} />
-      </mesh>
 
-      {/* landscaping ring */}
+      {/* ── tower crane while still building ── */}
+      {construction && !complete && <Crane v={v} topH={podiumH + structH + 6} />}
+
+      {/* landscaping ring (finished building views only) */}
       {!simple &&
+        !construction &&
         Array.from({ length: 8 }).map((_, i) => {
           const a = (i / 8) * Math.PI * 2;
           const r = pw * 0.62;

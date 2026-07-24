@@ -104,7 +104,7 @@ function Sun({ hour }: { hour: number }) {
 }
 
 function Building() {
-  const { floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes } = useStudio();
+  const { floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors } = useStudio();
   const groupRef = useRef<THREE.Group>(null);
   const invalidate = useThree((s) => s.invalidate);
   // re-render the on-demand canvas whenever the model changes
@@ -112,7 +112,7 @@ function Building() {
     let n = 0;
     const id = setInterval(() => { invalidate(); if (++n > 12) clearInterval(id); }, 90);
     return () => clearInterval(id);
-  }, [invalidate, floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes]);
+  }, [invalidate, floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors]);
   const mat = MATERIALS.find((m) => m.id === facadeMaterialId)!;
   const v: TowerVariant = {
     id: "studio",
@@ -135,7 +135,12 @@ function Building() {
             <GlbModel url={glbUrl} />
           </Suspense>
         ) : (
-          <RealisticTower v={v} simple />
+          <RealisticTower
+            v={v}
+            simple
+            structTo={constructionMode ? structFloors : undefined}
+            facadeTo={constructionMode ? facadeFloors : undefined}
+          />
         )}
       </group>
       <ModeOverride groupRef={groupRef} mode={renderMode} />

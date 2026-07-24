@@ -163,7 +163,7 @@ export default function StudioWorkspace() {
   const is3D = s.mode === "3d" || s.mode === "materials" || s.mode === "lighting" || s.mode === "analysis";
 
   const elevFaces = ["North", "South", "East", "West"];
-  useEffect(() => { useStudio.getState().setShowClashes(false); }, []);
+  useEffect(() => { useStudio.getState().setShowClashes(false); useStudio.getState().setConstructionMode(false); }, []);
   const stageRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 

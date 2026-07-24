@@ -26,6 +26,7 @@ export interface WsTab {
   is3D?: boolean;
   renderMode?: RenderMode;
   clashes?: boolean;
+  construction?: boolean;
   toolbar?: ReactNode;
   content?: ReactNode;
   inspector?: ReactNode;
@@ -55,12 +56,17 @@ export default function DisciplineWorkspace({
   const tab = tabs.find((t) => t.id === active) ?? tabs[0];
   const setRenderMode = useStudio((s) => s.setRenderMode);
   const setShowClashes = useStudio((s) => s.setShowClashes);
+  const setConstructionMode = useStudio((s) => s.setConstructionMode);
 
   useEffect(() => {
     if (tab.is3D && tab.renderMode) setRenderMode(tab.renderMode);
     setShowClashes(!!tab.clashes);
-    return () => setShowClashes(false);
-  }, [tab, setRenderMode, setShowClashes]);
+    setConstructionMode(!!tab.construction);
+    return () => {
+      setShowClashes(false);
+      setConstructionMode(false);
+    };
+  }, [tab, setRenderMode, setShowClashes, setConstructionMode]);
 
   return (
     <div className="glass glow sheen relative overflow-hidden rounded-2xl">
