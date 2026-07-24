@@ -69,7 +69,7 @@ function Fins({ w, d, height, yBase }: { w: number; h?: number; d: number; heigh
   );
 }
 
-export function RealisticTower({ v }: { v: TowerVariant }) {
+export function RealisticTower({ v, simple = false }: { v: TowerVariant; simple?: boolean }) {
   const glassMat = useMemo(
     () => (
       <meshPhysicalMaterial
@@ -141,7 +141,7 @@ export function RealisticTower({ v }: { v: TowerVariant }) {
                 roughness={0.5}
               />
             </mesh>
-            {balcony && (
+            {balcony && !simple && (
               <group>
                 <mesh position={[0, y - 0.4, v.d / 2 + 0.7]} castShadow>
                   <boxGeometry args={[v.w * 0.6, 0.14, 1.4]} />
@@ -175,48 +175,53 @@ export function RealisticTower({ v }: { v: TowerVariant }) {
         <boxGeometry args={[v.w * 0.55, 2.6, v.d * 0.55]} />
         {v.greenRoof ? <meshStandardMaterial color="#2f6a4a" roughness={0.9} /> : glassMat}
       </mesh>
-      {/* rooftop mechanical equipment */}
-      {[[-0.26, 0.15], [0.24, -0.18], [0.05, 0.28]].map(([fx, fz], i) => (
-        <mesh key={`eq${i}`} position={[fx * v.w, podiumH + shaftH + 1.0, fz * v.d]} castShadow>
-          <boxGeometry args={[1.5, 1.1, 1.7]} />
-          {metal}
-        </mesh>
-      ))}
-      {[[-0.28, -0.2], [0.22, 0.24]].map(([fx, fz], i) => (
-        <mesh key={`cu${i}`} position={[fx * v.w, podiumH + shaftH + 1.1, fz * v.d]} castShadow>
-          <cylinderGeometry args={[0.55, 0.55, 0.9, 14]} />
-          <meshStandardMaterial color="#8b95a3" metalness={0.7} roughness={0.5} />
-        </mesh>
-      ))}
-      {/* rooftop parapet frame */}
-      {[[0, 1, v.d / 2], [0, 1, -v.d / 2]].map(([, , z], i) => (
-        <mesh key={`pa${i}`} position={[0, podiumH + shaftH + 0.7, z as number]}>
-          <boxGeometry args={[v.w + 0.2, 0.5, 0.1]} />
-          {metal}
-        </mesh>
-      ))}
+      {!simple && (
+        <>
+          {/* rooftop mechanical equipment */}
+          {[[-0.26, 0.15], [0.24, -0.18], [0.05, 0.28]].map(([fx, fz], i) => (
+            <mesh key={`eq${i}`} position={[fx * v.w, podiumH + shaftH + 1.0, fz * v.d]} castShadow>
+              <boxGeometry args={[1.5, 1.1, 1.7]} />
+              {metal}
+            </mesh>
+          ))}
+          {[[-0.28, -0.2], [0.22, 0.24]].map(([fx, fz], i) => (
+            <mesh key={`cu${i}`} position={[fx * v.w, podiumH + shaftH + 1.1, fz * v.d]} castShadow>
+              <cylinderGeometry args={[0.55, 0.55, 0.9, 14]} />
+              <meshStandardMaterial color="#8b95a3" metalness={0.7} roughness={0.5} />
+            </mesh>
+          ))}
+          {/* rooftop parapet frame */}
+          {[[0, 1, v.d / 2], [0, 1, -v.d / 2]].map(([, , z], i) => (
+            <mesh key={`pa${i}`} position={[0, podiumH + shaftH + 0.7, z as number]}>
+              <boxGeometry args={[v.w + 0.2, 0.5, 0.1]} />
+              {metal}
+            </mesh>
+          ))}
+        </>
+      )}
       <mesh position={[0, podiumH + shaftH + 4.4, 0]}>
         <cylinderGeometry args={[0.05, 0.05, 3, 8]} />
         <meshStandardMaterial color="#dfe6f2" emissive="#8ea2ff" emissiveIntensity={0.4} />
       </mesh>
 
       {/* landscaping ring */}
-      {Array.from({ length: 8 }).map((_, i) => {
-        const a = (i / 8) * Math.PI * 2;
-        const r = pw * 0.62;
-        return (
-          <group key={`t${i}`} position={[Math.cos(a) * r, 0, Math.sin(a) * r * 0.8]}>
-            <mesh position={[0, 0.9, 0]} castShadow>
-              <sphereGeometry args={[1.1, 10, 10]} />
-              <meshStandardMaterial color="#2c5a3f" roughness={0.9} />
-            </mesh>
-            <mesh position={[0, 0.2, 0]}>
-              <cylinderGeometry args={[0.12, 0.16, 0.9, 6]} />
-              <meshStandardMaterial color="#3a2c22" roughness={1} />
-            </mesh>
-          </group>
-        );
-      })}
+      {!simple &&
+        Array.from({ length: 8 }).map((_, i) => {
+          const a = (i / 8) * Math.PI * 2;
+          const r = pw * 0.62;
+          return (
+            <group key={`t${i}`} position={[Math.cos(a) * r, 0, Math.sin(a) * r * 0.8]}>
+              <mesh position={[0, 0.9, 0]} castShadow>
+                <sphereGeometry args={[1.1, 10, 10]} />
+                <meshStandardMaterial color="#2c5a3f" roughness={0.9} />
+              </mesh>
+              <mesh position={[0, 0.2, 0]}>
+                <cylinderGeometry args={[0.12, 0.16, 0.9, 6]} />
+                <meshStandardMaterial color="#3a2c22" roughness={1} />
+              </mesh>
+            </group>
+          );
+        })}
     </group>
   );
 }

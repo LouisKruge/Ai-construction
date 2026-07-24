@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, ContactShadows, Environment } from "@react-three/drei";
 import * as THREE from "three";
 import { RealisticTower, type TowerVariant } from "@/components/RealisticTower";
@@ -73,7 +73,7 @@ function Building() {
       <Sun hour={timeOfDay} />
       <hemisphereLight args={["#9fb0d8", "#0e1730", night ? 0.35 : 0.7]} />
       <group ref={groupRef}>
-        <RealisticTower v={v} />
+        <RealisticTower v={v} simple />
       </group>
       <ModeOverride groupRef={groupRef} mode={renderMode} />
       {/* ground */}
@@ -87,18 +87,35 @@ function Building() {
   );
 }
 
+// After the scene + HDRI load, request a few frames so the on-demand canvas
+// paints the loaded model, then let it idle (no continuous rendering).
+function Warmup() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    let n = 0;
+    const id = setInterval(() => {
+      invalidate();
+      if (++n > 24) clearInterval(id);
+    }, 90);
+    return () => clearInterval(id);
+  }, [invalidate]);
+  return null;
+}
+
 export default function StudioViewport() {
   return (
     <Canvas
       shadows
       dpr={[1, 1.5]}
+      frameloop="demand"
       camera={{ position: [22, 14, 26], fov: 32 }}
       gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
       className="h-full w-full"
     >
       <Suspense fallback={null}>
         <Building />
-        <OrbitControls makeDefault enablePan autoRotate autoRotateSpeed={0.35} enableDamping dampingFactor={0.07} minDistance={16} maxDistance={60} maxPolarAngle={Math.PI / 2.1} target={[0, 7, 0]} />
+        <Warmup />
+        <OrbitControls makeDefault enablePan enableDamping dampingFactor={0.08} minDistance={16} maxDistance={60} maxPolarAngle={Math.PI / 2.1} target={[0, 7, 0]} />
       </Suspense>
     </Canvas>
   );
