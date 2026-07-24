@@ -99,7 +99,7 @@ function Sun({ hour }: { hour: number }) {
   return (
     <directionalLight
       ref={ref}
-      intensity={0.8 + elev * 2.2}
+      intensity={0.45 + elev * 1.1}
       color={color}
       castShadow
       shadow-mapSize={[1024, 1024]}
@@ -176,7 +176,7 @@ function Building() {
         <CityContext night={night} />
       )}
       <ContactShadows position={[0, 0.02, 0]} scale={44} far={30} blur={2.4} opacity={0.5} />
-      <Environment files="/hdri/venice_sunset_1k.hdr" environmentIntensity={night ? 0.5 : 1.05} background backgroundBlurriness={0.6} backgroundIntensity={night ? 0.25 : 0.6} />
+      <Environment files="/hdri/venice_sunset_1k.hdr" environmentIntensity={night ? 0.28 : 0.5} background backgroundBlurriness={0.65} backgroundIntensity={night ? 0.2 : 0.42} />
     </>
   );
 }
@@ -203,7 +203,7 @@ export default function StudioViewport() {
       dpr={[1, 1.5]}
       frameloop="demand"
       camera={{ position: [22, 14, 26], fov: 32 }}
-      gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
+      gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 0.88 }}
       onPointerMissed={() => useStudio.getState().setSelectedFloor(null)}
       className="h-full w-full"
     >
@@ -213,8 +213,8 @@ export default function StudioViewport() {
         <OrbitControls makeDefault enablePan enableDamping dampingFactor={0.08} minDistance={14} maxDistance={95} maxPolarAngle={Math.PI / 2.05} target={[0, 7, 0]} />
         {/* cinematic post — subtle bloom on glass/lights, crisp AA, gentle vignette */}
         <EffectComposer enableNormalPass={false} multisampling={0}>
-          <Bloom intensity={0.5} luminanceThreshold={0.72} luminanceSmoothing={0.22} mipmapBlur radius={0.7} />
-          <Vignette offset={0.22} darkness={0.62} eskil={false} />
+          <Bloom intensity={0.28} luminanceThreshold={0.92} luminanceSmoothing={0.18} mipmapBlur radius={0.55} />
+          <Vignette offset={0.24} darkness={0.55} eskil={false} />
           <SMAA />
         </EffectComposer>
         <AdaptiveDpr pixelated />

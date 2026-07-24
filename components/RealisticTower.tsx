@@ -65,7 +65,7 @@ function Fins({ w, d, height, yBase }: { w: number; h?: number; d: number; heigh
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, mats.length]} castShadow>
       <boxGeometry args={[0.12, height, 0.28]} />
-      <meshStandardMaterial color="#b6c0cf" metalness={0.9} roughness={0.42} />
+      <meshStandardMaterial color="#3a414c" metalness={0.2} roughness={0.65} envMapIntensity={0.2} />
     </instancedMesh>
   );
 }
@@ -173,21 +173,13 @@ export function RealisticTower({
       ghostGlass ? (
         <meshPhysicalMaterial color={v.glass} metalness={0} roughness={0.12} transparent opacity={0.12} envMapIntensity={1.0} />
       ) : (
-        <meshPhysicalMaterial
-          color={v.glass}
-          metalness={0}
-          roughness={0.07}
-          envMapIntensity={1.5}
-          clearcoat={1}
-          clearcoatRoughness={0.06}
-          reflectivity={0.9}
-          ior={1.45}
-        />
+        <meshStandardMaterial color={v.glass} metalness={0.1} roughness={0.4} envMapIntensity={0.25} />
       ),
     [v.glass, ghostGlass],
   );
-  const concrete = <meshStandardMaterial color="#8b95a3" metalness={0.1} roughness={0.85} />;
-  const metal = <meshStandardMaterial color="#aeb8c6" metalness={0.92} roughness={0.4} />;
+  const concrete = <meshStandardMaterial color="#7a828d" metalness={0.05} roughness={0.9} envMapIntensity={0.25} />;
+  const spandrel = <meshStandardMaterial color="#333c48" metalness={0.1} roughness={0.75} envMapIntensity={0.2} />; // darker floor band so the facade reads as glass, not white slabs
+  const metal = <meshStandardMaterial color="#6b7480" metalness={0.7} roughness={0.5} />;
   const frameMat = <meshStandardMaterial color="#9aa2ac" metalness={0.15} roughness={0.92} />; // raw concrete frame
 
   // ── construction progress ────────────────────────────────────────────────
@@ -226,7 +218,7 @@ export function RealisticTower({
         {metal}
       </mesh>
 
-      {/* ── tower shaft glazing — only the fitted-out floors ── */}
+      {/* ── tower shaft glazing ── */}
       {fTo > 0 && (
         <mesh position={[0, podiumH + glazedH / 2, 0]} castShadow receiveShadow>
           <boxGeometry args={[v.w - 0.3, glazedH, v.d - 0.3]} />
@@ -241,20 +233,15 @@ export function RealisticTower({
         const balcony = !construction && i > 3 && i < v.floors - 1 && (i * 3 + 1) % 4 === 0;
         return (
           <group key={`fl${i}`}>
+            {/* spandrel floor band */}
             <mesh position={[0, y, 0]} castShadow>
-              <boxGeometry args={[v.w + 0.15, 0.22, v.d + 0.15]} />
-              {concrete}
+              <boxGeometry args={[v.w + 0.04, 0.24, v.d + 0.04]} />
+              {glazed ? spandrel : concrete}
             </mesh>
-            {glazed && !ghostGlass && (
-              <mesh position={[0, y - FLOOR_H * 0.32, 0]}>
-                <boxGeometry args={[v.w + 0.05, 0.7, v.d + 0.05]} />
-                <meshStandardMaterial
-                  color={lit ? "#ffdba0" : "#3b4658"}
-                  emissive={lit ? "#ffcf8a" : "#000000"}
-                  emissiveIntensity={lit ? 0.7 : 0}
-                  metalness={0.5}
-                  roughness={0.5}
-                />
+            {glazed && !ghostGlass && lit && (
+              <mesh position={[0, y - FLOOR_H * 0.32, v.d / 2 - 0.04]}>
+                <boxGeometry args={[v.w - 0.8, 0.42, 0.05]} />
+                <meshStandardMaterial color="#7a663f" emissive="#ffcf8a" emissiveIntensity={0.32} />
               </mesh>
             )}
             {balcony && !simple && (
@@ -395,7 +382,7 @@ export function RealisticTower({
                 onPointerOut={() => { document.body.style.cursor = ""; }}
               >
                 <boxGeometry args={[v.w + 0.5, FLOOR_H * 0.94, v.d + 0.5]} />
-                <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+                <meshBasicMaterial colorWrite={false} depthWrite={false} />
               </mesh>
               {sel && (
                 <mesh position={[0, y, 0]}>
