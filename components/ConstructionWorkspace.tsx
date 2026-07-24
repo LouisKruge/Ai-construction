@@ -4,6 +4,7 @@ import { useState } from "react";
 import DisciplineWorkspace, { Row, type WsTab } from "@/components/DisciplineWorkspace";
 import EditableProgramme from "@/components/EditableProgramme";
 import EvmPanel from "@/components/EvmPanel";
+import InstallationPanel from "@/components/InstallationPanel";
 import { useStudio } from "@/lib/studioStore";
 
 function SiteInspector() {
@@ -86,12 +87,14 @@ const I = {
   fourd: <path d="M4 20 V8 l8 -4 l8 4 v12 M4 8 l8 4 l8 -4 M12 12 v8" />,
   evm: <path d="M4 20 V4 M4 20 h16 M7 16 l4 -5 l3 3 l5 -8" />,
   safety: <path d="M12 3 l7 3 v5 c0 4 -3 7 -7 9 c-4 -2 -7 -5 -7 -9 V6 z M12 9 v4 M12 16 h.01" />,
+  install: <path d="M3 21 h18 M6 21 V11 h4 v10 M14 21 V7 h4 v14 M8 8 l2 -2 M16 4 l2 -2" />,
 };
 
 const tabs: WsTab[] = [
   { id: "site", label: "Site", icon: I.site, is3D: true, renderMode: "shaded", ai: "Assess site logistics and crane coverage for this tower and suggest an optimal sequence.", inspector: <SiteInspector /> },
   { id: "programme", label: "Programme", icon: I.programme, ai: "Explain the critical path and where the programme is most at risk of slipping.", content: <EditableProgramme /> },
   { id: "4d", label: "4D Sequence", icon: I.fourd, ai: "Review the construction sequence and identify opportunities to compress the programme.", content: <FourD /> },
+  { id: "install", label: "Installation", icon: I.install, ai: "Track part delivery-to-install and flag which zones are waiting on fabricated parts.", content: <InstallationPanel /> },
   { id: "evm", label: "Earned Value", icon: I.evm, ai: "Interpret the earned-value metrics (CPI/SPI/EAC) and recommend corrective action.", content: <EvmPanel /> },
   { id: "safety", label: "Safety", icon: I.safety, ai: "Summarise the safety performance and the top risks to address this week.", content: <SafetyPanel /> },
 ];

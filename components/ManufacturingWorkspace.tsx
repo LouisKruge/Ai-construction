@@ -2,6 +2,8 @@
 
 import DisciplineWorkspace, { Row, type WsTab } from "@/components/DisciplineWorkspace";
 import ManufacturingSim from "@/components/ManufacturingSim";
+import PartsPanel from "@/components/PartsPanel";
+import MachiningPanel from "@/components/MachiningPanel";
 import { workOrders, projects } from "@/lib/data";
 
 function FabInspector() {
@@ -104,14 +106,18 @@ const I = {
   sim: <path d="M12 3 a9 9 0 1 0 9 9 h-9 z" />,
   quality: <path d="M4 12 l4 4 l8 -10 M4 19 h16" />,
   logistics: <path d="M3 7 h11 v8 H3 z M14 10 h4 l3 3 v2 h-7 z M7 18 a1.5 1.5 0 1 0 .01 0 M17 18 a1.5 1.5 0 1 0 .01 0" />,
+  parts: <path d="M12 3 l8 4.5 v9 L12 21 l-8 -4.5 v-9 z M4 7.5 L12 12 l8 -4.5 M12 12 V21" />,
+  machining: <path d="M12 8 a4 4 0 1 0 .01 0 M12 2 v3 M12 19 v3 M2 12 h3 M19 12 h3 M5 5 l2 2 M17 17 l2 2 M5 19 l2 -2 M17 7 l2 -2" />,
 };
 
 const tabs: WsTab[] = [
   { id: "fab", label: "Fabrication", icon: I.fab, is3D: true, renderMode: "shaded", ai: "Review the fabrication model and suggest how to improve nesting efficiency and reduce waste.", inspector: <FabInspector /> },
+  { id: "parts", label: "Parts", icon: I.parts, ai: "Which fabricated parts are behind, and what QA issues are driving rework?", content: <PartsPanel mode="production" /> },
+  { id: "machining", label: "Machining", icon: I.machining, ai: "Optimise the nesting and cut sequence for this part to reduce material waste and cycle time.", content: <MachiningPanel /> },
   { id: "orders", label: "Work Orders", icon: I.orders, ai: "Which work orders are most at risk of missing their due dates, and why?", content: <WorkOrdersPanel /> },
   { id: "sim", label: "Production Sim", icon: I.sim, ai: "Run the production simulation and recommend a schedule that maximises throughput.", content: <ManufacturingSim /> },
   { id: "quality", label: "Quality", icon: I.quality, ai: "Summarise QA performance and the top drivers of any first-pass yield loss.", content: <QualityPanel /> },
-  { id: "logistics", label: "Logistics", icon: I.logistics, ai: "Optimise dispatch sequencing to match the site's just-in-time installation programme.", content: <LogisticsPanel /> },
+  { id: "dispatch", label: "Dispatch", icon: I.logistics, ai: "Optimise dispatch sequencing to match the site's just-in-time installation programme.", content: <LogisticsPanel /> },
 ];
 
 export default function ManufacturingWorkspace() {

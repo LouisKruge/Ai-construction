@@ -2,8 +2,37 @@
 
 import DisciplineWorkspace, { Row, type WsTab } from "@/components/DisciplineWorkspace";
 import StructuralCalculator from "@/components/StructuralCalculator";
-import RebarDetail from "@/components/RebarDetail";
+import PartsPanel from "@/components/PartsPanel";
 import { useStudio, metrics, CLASHES } from "@/lib/studioStore";
+import { PARTS, methodColor, statusColor, totalMass } from "@/lib/fabrication";
+
+function PartsRegister() {
+  const mass = PARTS.reduce((s, p) => s + totalMass(p), 0);
+  const open = PARTS.filter((p) => p.status !== "Installed" && p.status !== "Dispatched").length;
+  return (
+    <div className="glass elev overflow-hidden rounded-2xl">
+      <div className="flex items-center justify-between px-5 pt-5">
+        <h3 className="text-[12px] font-semibold uppercase tracking-[0.16em] text-fg-muted">Parts Register · fabrication tracker</h3>
+        <div className="flex gap-2 text-[11px]"><span className="text-fg-faint">{PARTS.length} parts · {(mass / 1000).toFixed(1)} t</span><span className="rounded-full bg-caution/10 px-2 py-0.5 text-caution">{open} outstanding</span></div>
+      </div>
+      <table className="mt-3 w-full text-[12px]">
+        <thead><tr className="border-b border-edge text-left text-fg-faint"><th className="px-5 py-2">Mark</th><th>Part</th><th>Method</th><th>Qty</th><th>Status</th><th className="pr-5">Outstanding</th></tr></thead>
+        <tbody>
+          {PARTS.map((p) => (
+            <tr key={p.id} className="border-b border-edge/40 align-top transition hover:bg-raise">
+              <td className="px-5 py-2 font-mono text-fg">{p.id}</td>
+              <td className="text-fg-muted">{p.name}<div className="text-[10px] text-fg-faint">{p.grade} · t{p.thk}</div></td>
+              <td><span className="rounded px-1.5 py-0.5 text-[10px] text-white" style={{ background: methodColor[p.method] }}>{p.method}</span></td>
+              <td className="text-fg-muted">{p.qty}</td>
+              <td><span className={`text-[11px] font-medium ${statusColor(p.status)}`}>{p.status}</span><div className="mt-0.5 h-1 w-16 overflow-hidden rounded-full bg-edge"><div className="h-full rounded-full bg-gradient-to-r from-accent to-accent-2" style={{ width: `${p.progress}%` }} /></div></td>
+              <td className="pr-5 text-[11px] text-fg-faint">{p.outstanding}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 function ClashList() {
   const col = { high: "text-critical", med: "text-caution", low: "text-info" } as const;
@@ -123,14 +152,17 @@ const I = {
   loads: <path d="M12 3 v10 M8 9 l4 4 l4 -4 M5 20 h14" />,
   compliance: <path d="M12 3 l7 3 v5 c0 4 -3 7 -7 9 c-4 -2 -7 -5 -7 -9 V6 z M9 12 l2 2 l4 -4" />,
   clash: <path d="M13 2 L3 14 h7 l-1 8 l10 -12 h-7 z" />,
+  drawing: <path d="M4 3 h12 l4 4 v14 H4 z M9 8 h7 M6 12 h11 M6 16 h8" />,
+  register: <path d="M5 4 h14 v16 H5 z M8 8 h8 M8 12 h8 M8 16 h5" />,
 };
 
 const tabs: WsTab[] = [
   { id: "structure", label: "Structure", icon: I.structure, is3D: true, renderMode: "structural", ai: "Explain this structural frame and suggest a more efficient column grid and stability system.", inspector: <MemberInspector /> },
-  { id: "clashes", label: "Clashes", icon: I.clash, is3D: true, renderMode: "xray", clashes: true, ai: "Prioritise the open clashes by risk and propose the sequence to resolve them.", inspector: <ClashList /> },
+  { id: "shopdrawings", label: "Shop Drawings", icon: I.drawing, ai: "Review these fabrication shop drawings and check the connections and hole patterns are buildable.", content: <PartsPanel mode="design" /> },
+  { id: "register", label: "Parts Register", icon: I.register, ai: "Which fabricated parts are on the critical path and what's outstanding to release them?", content: <PartsRegister /> },
   { id: "checks", label: "Design Checks", icon: I.checks, ai: "Review the structural design checks and flag any members close to their limit-state capacity.", content: <StructuralCalculator /> },
-  { id: "rebar", label: "Reinforcement", icon: I.rebar, ai: "Optimise the reinforcement detailing and bar bending schedule to reduce steel tonnage.", content: <RebarDetail /> },
   { id: "loads", label: "Loads", icon: I.loads, ai: "Check the load take-down and combinations against SANS 10160.", content: <LoadsPanel /> },
+  { id: "clashes", label: "Clashes", icon: I.clash, is3D: true, renderMode: "xray", clashes: true, ai: "Prioritise the open clashes by risk and propose the sequence to resolve them.", inspector: <ClashList /> },
   { id: "compliance", label: "Compliance", icon: I.compliance, ai: "Summarise outstanding code-compliance items and what's needed to close them.", content: <CompliancePanel /> },
 ];
 
