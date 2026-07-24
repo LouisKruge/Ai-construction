@@ -112,31 +112,43 @@ function Crane({ v, topH }: { v: TowerVariant; topH: number }) {
   );
 }
 
+export interface ServiceRiser {
+  color: string;
+  done: number; // floors installed
+}
+
 export function RealisticTower({
   v,
   simple = false,
   structTo,
   facadeTo,
+  risers,
+  ghostGlass = false,
 }: {
   v: TowerVariant;
   simple?: boolean;
   structTo?: number; // construction: floors with frame complete (undefined = finished building)
   facadeTo?: number; // construction: floors glazed / fitted-out (≤ structTo)
+  risers?: ServiceRiser[]; // toggled building-system layers to visualise
+  ghostGlass?: boolean; // make the envelope semi-transparent (services cutaway)
 }) {
   const glassMat = useMemo(
-    () => (
-      <meshPhysicalMaterial
-        color={v.glass}
-        metalness={0}
-        roughness={0.07}
-        envMapIntensity={1.5}
-        clearcoat={1}
-        clearcoatRoughness={0.06}
-        reflectivity={0.9}
-        ior={1.45}
-      />
-    ),
-    [v.glass],
+    () =>
+      ghostGlass ? (
+        <meshPhysicalMaterial color={v.glass} metalness={0} roughness={0.12} transparent opacity={0.12} envMapIntensity={1.0} />
+      ) : (
+        <meshPhysicalMaterial
+          color={v.glass}
+          metalness={0}
+          roughness={0.07}
+          envMapIntensity={1.5}
+          clearcoat={1}
+          clearcoatRoughness={0.06}
+          reflectivity={0.9}
+          ior={1.45}
+        />
+      ),
+    [v.glass, ghostGlass],
   );
   const concrete = <meshStandardMaterial color="#8b95a3" metalness={0.1} roughness={0.85} />;
   const metal = <meshStandardMaterial color="#aeb8c6" metalness={0.92} roughness={0.4} />;
@@ -197,7 +209,7 @@ export function RealisticTower({
               <boxGeometry args={[v.w + 0.15, 0.22, v.d + 0.15]} />
               {concrete}
             </mesh>
-            {glazed && (
+            {glazed && !ghostGlass && (
               <mesh position={[0, y - FLOOR_H * 0.32, 0]}>
                 <boxGeometry args={[v.w + 0.05, 0.7, v.d + 0.05]} />
                 <meshStandardMaterial
@@ -296,6 +308,42 @@ export function RealisticTower({
           </mesh>
         </>
       )}
+
+      {/* ── toggled building-system service layers (risers) ── */}
+      {risers &&
+        risers.length > 0 &&
+        risers.map((r, i) => {
+          const cols = 3;
+          const gx = (i % cols) - 1;
+          const gz = Math.floor(i / cols) - 0.5;
+          const x = gx * v.w * 0.16;
+          const z = gz * v.d * 0.26;
+          const hgt = Math.max(0.3, r.done * FLOOR_H);
+          const topY = podiumH + r.done * FLOOR_H;
+          return (
+            <group key={`r${i}`} position={[x, 0, z]}>
+              {/* vertical riser main */}
+              <mesh position={[0, podiumH + hgt / 2, 0]}>
+                <cylinderGeometry args={[0.14, 0.14, hgt, 10]} />
+                <meshStandardMaterial color={r.color} emissive={r.color} emissiveIntensity={0.85} metalness={0.3} roughness={0.4} />
+              </mesh>
+              {/* floor-by-floor install nodes */}
+              {Array.from({ length: r.done }).map((_, f) => (
+                <mesh key={f} position={[0, podiumH + (f + 1) * FLOOR_H, 0]}>
+                  <sphereGeometry args={[0.24, 8, 8]} />
+                  <meshStandardMaterial color={r.color} emissive={r.color} emissiveIntensity={1.5} />
+                </mesh>
+              ))}
+              {/* bright install front */}
+              {r.done > 0 && (
+                <mesh position={[0, topY, 0]}>
+                  <sphereGeometry args={[0.36, 12, 12]} />
+                  <meshStandardMaterial color="#ffffff" emissive={r.color} emissiveIntensity={2.4} />
+                </mesh>
+              )}
+            </group>
+          );
+        })}
 
       {/* ── tower crane while still building ── */}
       {construction && !complete && <Crane v={v} topH={podiumH + structH + 6} />}

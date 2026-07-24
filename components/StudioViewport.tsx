@@ -6,6 +6,7 @@ import { OrbitControls, ContactShadows, Environment, useGLTF, Html } from "@reac
 import * as THREE from "three";
 import { RealisticTower, type TowerVariant } from "@/components/RealisticTower";
 import { useStudio, MATERIALS, CLASHES, type RenderMode } from "@/lib/studioStore";
+import { buildingSystems } from "@/lib/systems";
 
 const DRACO = "/draco/gltf/";
 
@@ -104,15 +105,21 @@ function Sun({ hour }: { hour: number }) {
 }
 
 function Building() {
-  const { floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors } = useStudio();
+  const { floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors, visibleSystems } = useStudio();
   const groupRef = useRef<THREE.Group>(null);
   const invalidate = useThree((s) => s.invalidate);
+  const risers = constructionMode
+    ? buildingSystems(floors, structFloors, facadeFloors)
+        .filter((s) => s.riser && visibleSystems[s.id])
+        .map((s) => ({ color: s.color, done: s.done }))
+    : [];
+  const systemsKey = risers.map((r) => r.color).join();
   // re-render the on-demand canvas whenever the model changes
   useEffect(() => {
     let n = 0;
     const id = setInterval(() => { invalidate(); if (++n > 12) clearInterval(id); }, 90);
     return () => clearInterval(id);
-  }, [invalidate, floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors]);
+  }, [invalidate, floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors, systemsKey]);
   const mat = MATERIALS.find((m) => m.id === facadeMaterialId)!;
   const v: TowerVariant = {
     id: "studio",
@@ -140,6 +147,8 @@ function Building() {
             simple
             structTo={constructionMode ? structFloors : undefined}
             facadeTo={constructionMode ? facadeFloors : undefined}
+            risers={risers}
+            ghostGlass={risers.length > 0}
           />
         )}
       </group>

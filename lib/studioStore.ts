@@ -57,6 +57,7 @@ export interface StudioState {
   constructionMode: boolean;
   structFloors: number; // floors with structural frame complete
   facadeFloors: number; // floors glazed / fitted-out (≤ structFloors)
+  visibleSystems: Record<string, boolean>; // building-system layers shown in the 3D model
 
   setMode: (m: StudioMode) => void;
   setRenderMode: (r: RenderMode) => void;
@@ -74,6 +75,7 @@ export interface StudioState {
   setConstructionMode: (b: boolean) => void;
   setStructFloors: (n: number) => void;
   setFacadeFloors: (n: number) => void;
+  toggleSystem: (id: string) => void;
 }
 
 export interface Clash {
@@ -113,6 +115,7 @@ export const useStudio = create<StudioState>((set) => ({
   constructionMode: false,
   structFloors: 16,
   facadeFloors: 12,
+  visibleSystems: {},
 
   setMode: (mode) => set({ mode }),
   setRenderMode: (renderMode) => set({ renderMode }),
@@ -134,6 +137,7 @@ export const useStudio = create<StudioState>((set) => ({
       return { structFloors, facadeFloors: Math.min(s.facadeFloors, structFloors) };
     }),
   setFacadeFloors: (n) => set((s) => ({ facadeFloors: clamp(Math.round(n), 0, s.structFloors) })),
+  toggleSystem: (id) => set((s) => ({ visibleSystems: { ...s.visibleSystems, [id]: !s.visibleSystems[id] } })),
 }));
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));

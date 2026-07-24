@@ -6,6 +6,7 @@ import EditableProgramme from "@/components/EditableProgramme";
 import EvmPanel from "@/components/EvmPanel";
 import InstallationPanel from "@/components/InstallationPanel";
 import { useStudio } from "@/lib/studioStore";
+import { buildingSystems } from "@/lib/systems";
 
 function SiteProgress() {
   const floors = useStudio((s) => s.floors);
@@ -56,6 +57,45 @@ function SiteProgress() {
         <Row k="Workforce on site" v="1,384" />
         <Row k="Incidents (30d)" v="0" tone="text-positive" />
       </div>
+
+      <SystemLayers />
+    </div>
+  );
+}
+
+function SystemLayers() {
+  const floors = useStudio((s) => s.floors);
+  const structFloors = useStudio((s) => s.structFloors);
+  const facadeFloors = useStudio((s) => s.facadeFloors);
+  const visibleSystems = useStudio((s) => s.visibleSystems);
+  const toggleSystem = useStudio((s) => s.toggleSystem);
+  const layers = buildingSystems(floors, structFloors, facadeFloors).filter((s) => s.riser);
+  const anyOn = layers.some((l) => visibleSystems[l.id]);
+  return (
+    <div className="mt-2 rounded-lg border border-edge bg-base/40 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <h4 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fg-muted">Service Layers · 3D</h4>
+        {anyOn && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">cutaway on</span>}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {layers.map((l) => {
+          const on = !!visibleSystems[l.id];
+          return (
+            <button
+              key={l.id}
+              onClick={() => toggleSystem(l.id)}
+              title={`${l.name} · ${l.done}/${floors} floors`}
+              className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] transition ${on ? "border-transparent text-fg" : "border-edge text-fg-muted hover:text-fg"}`}
+              style={on ? { background: `${l.color}22`, borderColor: l.color } : undefined}
+            >
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: l.color, boxShadow: on ? `0 0 8px ${l.color}` : "none" }} />
+              {l.name.split(" — ")[0].split(" & ")[0].split(",")[0]}
+              <span className="font-mono text-[10px] text-fg-faint">{l.done}</span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-[10px] text-fg-faint">Toggle a discipline to light its risers floor-by-floor in the model; the envelope turns to a cutaway so you can see inside.</p>
     </div>
   );
 }
@@ -121,20 +161,9 @@ function SystemsPanel() {
   const floors = useStudio((s) => s.floors);
   const S = useStudio((s) => s.structFloors);
   const F = useStudio((s) => s.facadeFloors);
-  const cl = (n: number) => Math.max(0, Math.min(floors, Math.round(n)));
-  const systems: { name: string; done: number; color: string; contractor: string; note: string }[] = [
-    { name: "Foundations & substructure", done: floors, color: "#94a3b8", contractor: "AfriSam", note: "Piling, pile caps, rafts, basement box" },
-    { name: "Structure — pillars, cores & slabs", done: S, color: "#6d7cff", contractor: "ArcelorMittal SA", note: "RC columns, core walls, PT slabs" },
-    { name: "Envelope — façade & glazing", done: F, color: "#38bdf8", contractor: "Meridian Façades", note: "Curtain wall, spandrels, waterproofing" },
-    { name: "Vertical transport — lifts & escalators", done: cl(S - 3), color: "#a855f7", contractor: "KONE", note: "Shaft rails, cars, machine rooms" },
-    { name: "Electrical & power", done: cl(F - 1), color: "#fbbf24", contractor: "Ingérop", note: "Risers, DBs, containment, 1st + 2nd fix" },
-    { name: "Fire — sprinklers, detection & egress", done: cl(F - 1), color: "#fb7185", contractor: "ASP Fire", note: "Sprinkler mains, hydrants, detection, pressurisation" },
-    { name: "Plumbing & wet services", done: cl(F), color: "#22d3ee", contractor: "Aqua Services", note: "Soil, waste, water reticulation, pumps" },
-    { name: "HVAC & mechanical", done: cl(F - 1), color: "#34d399", contractor: "AOS Mechanical", note: "AHUs, ducting, chilled water, VAV" },
-    { name: "ICT, data & security", done: cl(F - 2), color: "#60a5fa", contractor: "BT Comms", note: "Backbone, racks, CCTV, access control" },
-    { name: "Interior finishes & fit-out", done: cl(F - 2), color: "#f0abfc", contractor: "Tri-Star Interiors", note: "Partitions, ceilings, floors, joinery" },
-    { name: "Commissioning & handover", done: cl(F - 4), color: "#a3e635", contractor: "Atlas PM", note: "Balancing, integrated test, O&M, occupation cert" },
-  ];
+  const visibleSystems = useStudio((s) => s.visibleSystems);
+  const toggleSystem = useStudio((s) => s.toggleSystem);
+  const systems = buildingSystems(floors, S, F);
   const overall = Math.round((systems.reduce((s, x) => s + x.done / floors, 0) / systems.length) * 100);
   const statusOf = (d: number): [string, string] => (d >= floors ? ["Complete", "text-positive"] : d <= 0 ? ["Not started", "text-fg-faint"] : ["In progress", "text-caution"]);
   return (
@@ -155,12 +184,16 @@ function SystemsPanel() {
       <div className="space-y-1.5">
         {systems.map((sy) => {
           const [st, tone] = statusOf(sy.done);
+          const on = !!visibleSystems[sy.id];
           return (
-            <div key={sy.name} className="flex flex-col gap-1.5 rounded-lg border border-edge bg-base/40 p-2.5 sm:flex-row sm:items-center sm:gap-3">
+            <div key={sy.name} className={`flex flex-col gap-1.5 rounded-lg border bg-base/40 p-2.5 sm:flex-row sm:items-center sm:gap-3 ${on ? "border-edge-strong" : "border-edge"}`}>
               <div className="w-56 shrink-0">
                 <div className="flex items-center gap-1.5 text-[12px] font-medium text-fg">
-                  <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: sy.color }} />
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: sy.color, boxShadow: on ? `0 0 8px ${sy.color}` : "none" }} />
                   {sy.name}
+                  {sy.riser && (
+                    <button onClick={() => toggleSystem(sy.id)} title="Toggle this layer in the 3D model" className={`ml-auto shrink-0 rounded px-1.5 py-0.5 text-[9px] font-medium transition ${on ? "text-fg" : "border border-edge text-fg-faint hover:text-fg"}`} style={on ? { background: `${sy.color}22`, border: `1px solid ${sy.color}` } : undefined}>{on ? "◉ 3D" : "○ 3D"}</button>
+                  )}
                 </div>
                 <div className="truncate pl-4 text-[10px] text-fg-faint">{sy.note} · {sy.contractor}</div>
               </div>
