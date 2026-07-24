@@ -115,7 +115,7 @@ function Sun({ hour }: { hour: number }) {
 }
 
 function Building() {
-  const { floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors, visibleSystems } = useStudio();
+  const { floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors, visibleSystems, selectedFloor, setSelectedFloor } = useStudio();
   const groupRef = useRef<THREE.Group>(null);
   const invalidate = useThree((s) => s.invalidate);
   const risers = constructionMode
@@ -129,7 +129,7 @@ function Building() {
     let n = 0;
     const id = setInterval(() => { invalidate(); if (++n > 12) clearInterval(id); }, 90);
     return () => clearInterval(id);
-  }, [invalidate, floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors, systemsKey]);
+  }, [invalidate, floors, width, depth, facadeMaterialId, renderMode, timeOfDay, modelSource, showClashes, constructionMode, structFloors, facadeFloors, systemsKey, selectedFloor]);
   const mat = MATERIALS.find((m) => m.id === facadeMaterialId)!;
   const v: TowerVariant = {
     id: "studio",
@@ -159,6 +159,8 @@ function Building() {
             facadeTo={constructionMode ? facadeFloors : undefined}
             risers={risers}
             ghostGlass={risers.length > 0}
+            selectedFloor={selectedFloor}
+            onSelectFloor={setSelectedFloor}
           />
         )}
       </group>
@@ -202,6 +204,7 @@ export default function StudioViewport() {
       frameloop="demand"
       camera={{ position: [22, 14, 26], fov: 32 }}
       gl={{ antialias: true, alpha: true, preserveDrawingBuffer: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
+      onPointerMissed={() => useStudio.getState().setSelectedFloor(null)}
       className="h-full w-full"
     >
       <Suspense fallback={null}>

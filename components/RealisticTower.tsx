@@ -7,8 +7,9 @@
 
 import { useLayoutEffect, useMemo, useRef, useState, useEffect, Suspense } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Environment, ContactShadows } from "@react-three/drei";
+import { Environment, ContactShadows, Html } from "@react-three/drei";
 import * as THREE from "three";
+import { useStudio, floorUse } from "@/lib/studioStore";
 
 export interface TowerVariant {
   id: string;
@@ -117,6 +118,37 @@ export interface ServiceRiser {
   done: number; // floors installed
 }
 
+// Floating live-data card for the selected level.
+function FloorCard({ i, y, x, floors }: { i: number; y: number; x: number; floors: number }) {
+  const width = useStudio((s) => s.width);
+  const depth = useStudio((s) => s.depth);
+  const use = floorUse(i, floors);
+  const occ = use.includes("Mechanical") ? 0 : 34 + ((i * 37) % 58);
+  const area = Math.round(width * depth);
+  const tone = occ > 75 ? "#34d399" : occ > 0 ? "#fbbf24" : "#8ea2ff";
+  return (
+    <Html position={[x, y, 0]} distanceFactor={26} zIndexRange={[20, 0]} className="pointer-events-none">
+      <div className="w-44 -translate-y-1/2 rounded-lg border border-edge bg-base/90 p-2.5 text-[10px] shadow-xl backdrop-blur">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-[12px] font-semibold text-fg">Level {i + 1}</span>
+          <span className="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-accent">L{i + 1}/{floors}</span>
+        </div>
+        <div className="mb-1.5 text-[10px] text-accent">{use}</div>
+        {[["GFA", `${area.toLocaleString()} m²`], ["Occupancy", occ ? `${occ}%` : "—"], ["Height AGL", `${(i * 3.4 + 12).toFixed(1)} m`], ["Fire zone", `Z${Math.floor(i / 8) + 1}`]].map((r) => (
+          <div key={r[0]} className="flex justify-between border-t border-edge/40 py-0.5">
+            <span className="text-fg-faint">{r[0]}</span>
+            <span className="font-medium text-fg">{r[1]}</span>
+          </div>
+        ))}
+        <div className="mt-1 flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: tone }} />
+          <span className="text-fg-muted">{occ > 75 ? "Fully occupied" : occ > 0 ? "Partially let" : "Plant / unoccupied"}</span>
+        </div>
+      </div>
+    </Html>
+  );
+}
+
 export function RealisticTower({
   v,
   simple = false,
@@ -124,6 +156,8 @@ export function RealisticTower({
   facadeTo,
   risers,
   ghostGlass = false,
+  selectedFloor = null,
+  onSelectFloor,
 }: {
   v: TowerVariant;
   simple?: boolean;
@@ -131,6 +165,8 @@ export function RealisticTower({
   facadeTo?: number; // construction: floors glazed / fitted-out (≤ structTo)
   risers?: ServiceRiser[]; // toggled building-system layers to visualise
   ghostGlass?: boolean; // make the envelope semi-transparent (services cutaway)
+  selectedFloor?: number | null; // highlighted / inspected level
+  onSelectFloor?: (i: number) => void; // click a floor to select it
 }) {
   const glassMat = useMemo(
     () =>
@@ -344,6 +380,35 @@ export function RealisticTower({
             </group>
           );
         })}
+
+      {/* ── clickable floors → live digital-twin selection ── */}
+      {onSelectFloor &&
+        Array.from({ length: Math.max(1, construction ? sTo : v.floors) }).map((_, i) => {
+          const y = podiumH + (i + 0.5) * FLOOR_H;
+          const sel = selectedFloor === i;
+          return (
+            <group key={`pick${i}`}>
+              <mesh
+                position={[0, y, 0]}
+                onPointerDown={(e) => { e.stopPropagation(); onSelectFloor(i); }}
+                onPointerOver={(e) => { e.stopPropagation(); document.body.style.cursor = "pointer"; }}
+                onPointerOut={() => { document.body.style.cursor = ""; }}
+              >
+                <boxGeometry args={[v.w + 0.5, FLOOR_H * 0.94, v.d + 0.5]} />
+                <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+              </mesh>
+              {sel && (
+                <mesh position={[0, y, 0]}>
+                  <boxGeometry args={[v.w + 0.55, FLOOR_H * 0.96, v.d + 0.55]} />
+                  <meshStandardMaterial color="#8ea2ff" emissive="#6d7cff" emissiveIntensity={1.4} transparent opacity={0.26} depthWrite={false} />
+                </mesh>
+              )}
+            </group>
+          );
+        })}
+      {onSelectFloor && selectedFloor != null && selectedFloor < (construction ? sTo : v.floors) && (
+        <FloorCard i={selectedFloor} y={podiumH + (selectedFloor + 0.5) * FLOOR_H} x={v.w / 2 + 1.4} floors={v.floors} />
+      )}
 
       {/* ── tower crane while still building ── */}
       {construction && !complete && <Crane v={v} topH={podiumH + structH + 6} />}

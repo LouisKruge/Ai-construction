@@ -58,6 +58,7 @@ export interface StudioState {
   structFloors: number; // floors with structural frame complete
   facadeFloors: number; // floors glazed / fitted-out (≤ structFloors)
   visibleSystems: Record<string, boolean>; // building-system layers shown in the 3D model
+  selectedFloor: number | null; // clicked floor in the 3D model (0-based tower level)
 
   setMode: (m: StudioMode) => void;
   setRenderMode: (r: RenderMode) => void;
@@ -76,6 +77,7 @@ export interface StudioState {
   setStructFloors: (n: number) => void;
   setFacadeFloors: (n: number) => void;
   toggleSystem: (id: string) => void;
+  setSelectedFloor: (n: number | null) => void;
 }
 
 export interface Clash {
@@ -116,6 +118,7 @@ export const useStudio = create<StudioState>((set) => ({
   structFloors: 16,
   facadeFloors: 12,
   visibleSystems: {},
+  selectedFloor: null,
 
   setMode: (mode) => set({ mode }),
   setRenderMode: (renderMode) => set({ renderMode }),
@@ -138,7 +141,18 @@ export const useStudio = create<StudioState>((set) => ({
     }),
   setFacadeFloors: (n) => set((s) => ({ facadeFloors: clamp(Math.round(n), 0, s.structFloors) })),
   toggleSystem: (id) => set((s) => ({ visibleSystems: { ...s.visibleSystems, [id]: !s.visibleSystems[id] } })),
+  setSelectedFloor: (selectedFloor) => set({ selectedFloor }),
 }));
+
+// program / use for a given tower level — drives the floor inspector
+export function floorUse(i: number, floors: number): string {
+  if (i === 0) return "Sky lobby & retail";
+  if (i >= floors - 1) return "Rooftop amenity / observation";
+  if (i === Math.floor(floors * 0.5)) return "Sky lobby & sky garden";
+  if ((i + 1) % 8 === 0) return "Mechanical / plant floor";
+  if (i > floors - 4) return "Executive suites";
+  return "Office — open plan";
+}
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
