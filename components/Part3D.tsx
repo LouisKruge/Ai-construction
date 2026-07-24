@@ -99,11 +99,13 @@ function PartMesh({ part }: { part: Part }) {
         const px = s.x - part.w / 2, py = s.y - part.h / 2, z0 = part.thk / 2;
         return (
           <group key={i} position={[px, py, z0]}>
-            <mesh position={[0, 0, embed.len / 2]} castShadow>
+            {/* shaft — cylinder axis rotated from Y to +Z so studs stand upright */}
+            <mesh position={[0, 0, embed.len / 2]} rotation={[Math.PI / 2, 0, 0]} castShadow>
               <cylinderGeometry args={[embed.dia / 2, embed.dia / 2, embed.len, 20]} />
               <meshStandardMaterial color="#b9c0cc" metalness={0.85} roughness={0.4} />
             </mesh>
-            <mesh position={[0, 0, embed.len]} castShadow>
+            {/* forged head */}
+            <mesh position={[0, 0, embed.len]} rotation={[Math.PI / 2, 0, 0]} castShadow>
               <cylinderGeometry args={[embed.dia * 0.85, embed.dia * 0.85, embed.dia * 0.6, 20]} />
               <meshStandardMaterial color="#b9c0cc" metalness={0.85} roughness={0.4} />
             </mesh>

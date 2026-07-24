@@ -117,8 +117,72 @@ function SafetyPanel() {
   );
 }
 
+function SystemsPanel() {
+  const floors = useStudio((s) => s.floors);
+  const S = useStudio((s) => s.structFloors);
+  const F = useStudio((s) => s.facadeFloors);
+  const cl = (n: number) => Math.max(0, Math.min(floors, Math.round(n)));
+  const systems: { name: string; done: number; color: string; contractor: string; note: string }[] = [
+    { name: "Foundations & substructure", done: floors, color: "#94a3b8", contractor: "AfriSam", note: "Piling, pile caps, rafts, basement box" },
+    { name: "Structure — pillars, cores & slabs", done: S, color: "#6d7cff", contractor: "ArcelorMittal SA", note: "RC columns, core walls, PT slabs" },
+    { name: "Envelope — façade & glazing", done: F, color: "#38bdf8", contractor: "Meridian Façades", note: "Curtain wall, spandrels, waterproofing" },
+    { name: "Vertical transport — lifts & escalators", done: cl(S - 3), color: "#a855f7", contractor: "KONE", note: "Shaft rails, cars, machine rooms" },
+    { name: "Electrical & power", done: cl(F - 1), color: "#fbbf24", contractor: "Ingérop", note: "Risers, DBs, containment, 1st + 2nd fix" },
+    { name: "Fire — sprinklers, detection & egress", done: cl(F - 1), color: "#fb7185", contractor: "ASP Fire", note: "Sprinkler mains, hydrants, detection, pressurisation" },
+    { name: "Plumbing & wet services", done: cl(F), color: "#22d3ee", contractor: "Aqua Services", note: "Soil, waste, water reticulation, pumps" },
+    { name: "HVAC & mechanical", done: cl(F - 1), color: "#34d399", contractor: "AOS Mechanical", note: "AHUs, ducting, chilled water, VAV" },
+    { name: "ICT, data & security", done: cl(F - 2), color: "#60a5fa", contractor: "BT Comms", note: "Backbone, racks, CCTV, access control" },
+    { name: "Interior finishes & fit-out", done: cl(F - 2), color: "#f0abfc", contractor: "Tri-Star Interiors", note: "Partitions, ceilings, floors, joinery" },
+    { name: "Commissioning & handover", done: cl(F - 4), color: "#a3e635", contractor: "Atlas PM", note: "Balancing, integrated test, O&M, occupation cert" },
+  ];
+  const overall = Math.round((systems.reduce((s, x) => s + x.done / floors, 0) / systems.length) * 100);
+  const statusOf = (d: number): [string, string] => (d >= floors ? ["Complete", "text-positive"] : d <= 0 ? ["Not started", "text-fg-faint"] : ["In progress", "text-caution"]);
+  return (
+    <div className="glass elev rounded-2xl p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <h3 className="text-[12px] font-semibold uppercase tracking-[0.16em] text-fg-muted">Building Systems</h3>
+          <p className="text-[11px] text-fg-faint">Every discipline a complete building needs — installed floor by floor, live from the model</p>
+        </div>
+        <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[12px] font-medium text-accent">{overall}% installed</span>
+      </div>
+      <div className="hidden items-center gap-3 px-2.5 pb-1 text-[9px] uppercase tracking-widest text-fg-faint sm:flex">
+        <span className="w-56 shrink-0">System · contractor</span>
+        <span className="flex-1">Ground → Roof (L1–L{floors})</span>
+        <span className="w-14 shrink-0 text-right">Floors</span>
+        <span className="w-20 shrink-0 text-right">Status</span>
+      </div>
+      <div className="space-y-1.5">
+        {systems.map((sy) => {
+          const [st, tone] = statusOf(sy.done);
+          return (
+            <div key={sy.name} className="flex flex-col gap-1.5 rounded-lg border border-edge bg-base/40 p-2.5 sm:flex-row sm:items-center sm:gap-3">
+              <div className="w-56 shrink-0">
+                <div className="flex items-center gap-1.5 text-[12px] font-medium text-fg">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: sy.color }} />
+                  {sy.name}
+                </div>
+                <div className="truncate pl-4 text-[10px] text-fg-faint">{sy.note} · {sy.contractor}</div>
+              </div>
+              <div className="flex flex-1 gap-[2px]">
+                {Array.from({ length: floors }).map((_, i) => (
+                  <div key={i} className="h-4 flex-1 rounded-[2px]" style={{ background: i < sy.done ? sy.color : "var(--color-edge)", opacity: i < sy.done ? 0.9 : 0.4 }} title={`L${i + 1}`} />
+                ))}
+              </div>
+              <span className="w-14 shrink-0 text-right font-mono text-[11px] text-fg-muted">{sy.done}/{floors}</span>
+              <span className={`w-20 shrink-0 text-right text-[11px] font-medium ${tone}`}>{st}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-[11px] text-fg-faint">Structure &amp; façade track the Site progress sliders; services (electrical, fire, HVAC, plumbing, ICT) follow the fit-out with realistic trade lags — drag the Site progress and every system advances with it.</p>
+    </div>
+  );
+}
+
 const I = {
   site: <path d="M3 20 h18 M5 20 V10 l7 -5 l7 5 v10 M9 20 v-6 h6 v6" />,
+  systems: <path d="M12 3 l9 5 l-9 5 l-9 -5 z M3 12 l9 5 l9 -5 M3 16 l9 5 l9 -5" />,
   programme: <path d="M4 6 h10 M4 12 h14 M4 18 h7 M20 4 v16" />,
   fourd: <path d="M4 20 V8 l8 -4 l8 4 v12 M4 8 l8 4 l8 -4 M12 12 v8" />,
   evm: <path d="M4 20 V4 M4 20 h16 M7 16 l4 -5 l3 3 l5 -8" />,
@@ -128,6 +192,7 @@ const I = {
 
 const tabs: WsTab[] = [
   { id: "site", label: "Site", icon: I.site, is3D: true, renderMode: "shaded", construction: true, ai: "Assess site logistics and crane coverage for this tower and suggest an optimal sequence.", inspector: <SiteProgress /> },
+  { id: "systems", label: "Systems", icon: I.systems, ai: "Which building systems are behind the fit-out and on the critical path to handover?", content: <SystemsPanel /> },
   { id: "programme", label: "Programme", icon: I.programme, ai: "Explain the critical path and where the programme is most at risk of slipping.", content: <EditableProgramme /> },
   { id: "4d", label: "4D Sequence", icon: I.fourd, ai: "Review the construction sequence and identify opportunities to compress the programme.", content: <FourD /> },
   { id: "install", label: "Installation", icon: I.install, ai: "Track part delivery-to-install and flag which zones are waiting on fabricated parts.", content: <InstallationPanel /> },

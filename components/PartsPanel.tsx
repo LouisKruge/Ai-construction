@@ -66,7 +66,7 @@ export function ShopDrawing({ part, svgId }: { part: Part; svgId?: string }) {
       <line x1={x1} y1={yy} x2={x2} y2={yy} />
       <line x1={x1} y1={yy - 3} x2={x1} y2={yy + 3} />
       <line x1={x2} y1={yy - 3} x2={x2} y2={yy + 3} />
-      <text x={(x1 + x2) / 2} y={yy + 12} fill="#cfe0ff" fontSize="10" textAnchor="middle" stroke="none">{label}</text>
+      <text x={(x1 + x2) / 2} y={yy + 12} fill="#cfe0ff" fontSize="11.5" textAnchor="middle" stroke="none">{label}</text>
     </g>
   );
   const vdim = (y1: number, y2: number, xx: number, label: string) => (
@@ -74,7 +74,7 @@ export function ShopDrawing({ part, svgId }: { part: Part; svgId?: string }) {
       <line x1={xx} y1={y1} x2={xx} y2={y2} />
       <line x1={xx - 3} y1={y1} x2={xx + 3} y2={y1} />
       <line x1={xx - 3} y1={y2} x2={xx + 3} y2={y2} />
-      <text x={xx - 6} y={(y1 + y2) / 2} fill="#cfe0ff" fontSize="10" textAnchor="middle" stroke="none" transform={`rotate(-90 ${xx - 6} ${(y1 + y2) / 2})`}>{label}</text>
+      <text x={xx - 6} y={(y1 + y2) / 2} fill="#cfe0ff" fontSize="11.5" textAnchor="middle" stroke="none" transform={`rotate(-90 ${xx - 6} ${(y1 + y2) / 2})`}>{label}</text>
     </g>
   );
 
@@ -88,8 +88,8 @@ export function ShopDrawing({ part, svgId }: { part: Part; svgId?: string }) {
       <rect x="8" y="8" width={VW - 16} height={VH - 16} fill="none" stroke="#2a3550" strokeWidth="1.2" />
 
       {/* ── PLAN VIEW ── */}
-      <text x={ox} y={planTop - 14} fill="#eef2fb" fontSize="11" fontWeight="700">{isPin ? "SIDE ELEVATION" : "PLAN — 1:" + Math.max(2, Math.round(2 / scale))}</text>
-      <text x={ox} y={planTop - 2} fill="#8ea2ff" fontSize="9">{isPin ? `Round bar Ø${part.thk}` : `Plate t = ${part.thk} · ${part.grade}`}</text>
+      <text x={ox} y={planTop - 14} fill="#eef2fb" fontSize="13" fontWeight="700">{isPin ? "SIDE ELEVATION" : "PLAN — 1:" + Math.max(2, Math.round(2 / scale))}</text>
+      <text x={ox} y={planTop - 2} fill="#8ea2ff" fontSize="10.5">{isPin ? `Round bar Ø${part.thk}` : `Plate t = ${part.thk} · ${part.grade}`}</text>
       <rect x={ox} y={oy} width={w} height={h} rx={isPin ? Math.min(h, 8) : 0} fill="#12203a" stroke="#6d7cff" strokeWidth="1.6" />
       {/* holes with centre-lines */}
       {part.holes.map((hole, i) => {
@@ -123,17 +123,17 @@ export function ShopDrawing({ part, svgId }: { part: Part; svgId?: string }) {
       {pitchY && ys.length > 1 && vdim(oy + (part.h - ys[0]) * scale, oy + (part.h - ys[1]) * scale, ox + w + 20, `${pitchY}`)}
       {xs.length > 0 && hdim(ox, ox + xs[0] * scale, oy + h + 40, `${xs[0]}`)}
       {part.holes[0] && (
-        <text x={ox + 4} y={oy - 2} fill="#38bdf8" fontSize="10" fontWeight="600">{part.holes.length}× Ø{part.holes[0].d}</text>
+        <text x={ox + 4} y={oy - 2} fill="#38bdf8" fontSize="11.5" fontWeight="600">{part.holes.length}× Ø{part.holes[0].d}</text>
       )}
 
       {/* ── SECTION A–A (thickness) ── */}
-      <text x={secX} y={planTop - 14} fill="#eef2fb" fontSize="11" fontWeight="700">{isPin ? "END VIEW" : "SECTION A–A"}</text>
+      <text x={secX} y={planTop - 14} fill="#eef2fb" fontSize="13" fontWeight="700">{isPin ? "END VIEW" : "SECTION A–A"}</text>
       {isPin ? (
         <g>
           <circle cx={secX + 40} cy={oy + h / 2} r={Math.max(16, (part.thk / 2) * scale)} fill="#12203a" stroke="#6d7cff" strokeWidth="1.6" />
           <line x1={secX + 40 - 26} y1={oy + h / 2} x2={secX + 40 + 26} y2={oy + h / 2} stroke="#38bdf8" strokeWidth="0.4" strokeDasharray="4 2" />
           <line x1={secX + 40} y1={oy + h / 2 - 26} x2={secX + 40} y2={oy + h / 2 + 26} stroke="#38bdf8" strokeWidth="0.4" strokeDasharray="4 2" />
-          <text x={secX} y={oy + h + 30} fill="#97a3bd" fontSize="9">Ø{part.thk} {part.grade}</text>
+          <text x={secX} y={oy + h + 30} fill="#97a3bd" fontSize="10.5">Ø{part.thk} {part.grade}</text>
         </g>
       ) : (
         <g>
@@ -152,46 +152,46 @@ export function ShopDrawing({ part, svgId }: { part: Part; svgId?: string }) {
               </g>
             ))}
           {hdim(secX, secX + thkPx, oy + h + 16, `t${part.thk}`)}
-          {isEmbed && <text x={secX + thkPx + 6} y={oy - 4} fill="#e6b34a" fontSize="9">12× stud Ø19×110</text>}
+          {isEmbed && <text x={secX + thkPx + 6} y={oy - 4} fill="#e6b34a" fontSize="10.5">12× stud Ø19×110</text>}
         </g>
       )}
 
       {/* ── HOLE / FEATURE SCHEDULE ── */}
       <g>
-        <text x={648} y={72} fill="#eef2fb" fontSize="11" fontWeight="700">SCHEDULE</text>
+        <text x={648} y={72} fill="#eef2fb" fontSize="13" fontWeight="700">SCHEDULE</text>
         <rect x={648} y={80} width={176} height={16} fill="#141d33" stroke="#303c54" />
         {["MK", "X", "Y", "Ø"].map((t, i) => (
-          <text key={t} x={654 + i * 42} y={92} fill="#8ea2ff" fontSize="8.5" fontWeight="600">{t}</text>
+          <text key={t} x={654 + i * 42} y={92} fill="#8ea2ff" fontSize="10.5" fontWeight="600">{t}</text>
         ))}
         {part.holes.slice(0, 6).map((hh, i) => (
           <g key={i}>
             <rect x={648} y={96 + i * 15} width={176} height={15} fill={i % 2 ? "#0e1626" : "#0b1220"} stroke="#233049" strokeWidth="0.4" />
-            <text x={654} y={106 + i * 15} fill="#cdd6ea" fontSize="8">h{i + 1}</text>
-            <text x={696} y={106 + i * 15} fill="#cdd6ea" fontSize="8">{hh.x}</text>
-            <text x={738} y={106 + i * 15} fill="#cdd6ea" fontSize="8">{hh.y}</text>
-            <text x={780} y={106 + i * 15} fill="#38bdf8" fontSize="8">{hh.d}</text>
+            <text x={654} y={106 + i * 15} fill="#cdd6ea" fontSize="10">h{i + 1}</text>
+            <text x={696} y={106 + i * 15} fill="#cdd6ea" fontSize="10">{hh.x}</text>
+            <text x={738} y={106 + i * 15} fill="#cdd6ea" fontSize="10">{hh.y}</text>
+            <text x={780} y={106 + i * 15} fill="#38bdf8" fontSize="10">{hh.d}</text>
           </g>
         ))}
         {part.holes.length === 0 && (
-          <text x={654} y={106} fill="#5c6884" fontSize="8">No holes — welded / cast feature</text>
+          <text x={654} y={106} fill="#5c6884" fontSize="10">No holes — welded / cast feature</text>
         )}
         {/* quantity callout */}
         <rect x={648} y={200} width={176} height={54} fill="#0b1220" stroke="#303c54" />
-        <text x={654} y={216} fill="#5c6884" fontSize="7.5">FABRICATE</text>
-        <text x={654} y={230} fill="#eef2fb" fontSize="14" fontWeight="700">{part.qty} off</text>
-        <text x={654} y={246} fill="#97a3bd" fontSize="8">{totalMass(part).toFixed(0)} kg total · {part.unitMass} kg/ea</text>
+        <text x={654} y={216} fill="#5c6884" fontSize="9.5">FABRICATE</text>
+        <text x={654} y={230} fill="#eef2fb" fontSize="16" fontWeight="700">{part.qty} off</text>
+        <text x={654} y={246} fill="#97a3bd" fontSize="10">{totalMass(part).toFixed(0)} kg total · {part.unitMass} kg/ea</text>
       </g>
 
       {/* ── MANUFACTURING NOTES (what's being made) ── */}
       <g>
         <rect x={20} y={352} width={438} height={186} fill="#0b1220" stroke="#303c54" />
-        <text x={30} y={372} fill="#eef2fb" fontSize="11" fontWeight="700">MANUFACTURE · {part.method}</text>
+        <text x={30} y={372} fill="#eef2fb" fontSize="13" fontWeight="700">MANUFACTURE · {part.method}</text>
         <line x1={20} y1={380} x2={458} y2={380} stroke="#233049" />
-        <text x={30} y={398} fill="#cdd6ea" fontSize="10">{part.name} — {part.category}</text>
+        <text x={30} y={398} fill="#cdd6ea" fontSize="11.5">{part.name} — {part.category}</text>
         {notes.map((ln, i) => (
-          <text key={i} x={30} y={418 + i * 18} fill="#9fb2c8" fontSize="9.5">{ln}</text>
+          <text key={i} x={30} y={418 + i * 18} fill="#9fb2c8" fontSize="11">{ln}</text>
         ))}
-        <text x={30} y={522} fill="#5c6884" fontSize="8.5">TOL {part.tolerance} · WELD to SANS 10162 · edges to EXC2 · {part.factory}</text>
+        <text x={30} y={522} fill="#5c6884" fontSize="10.5">TOL {part.tolerance} · WELD to SANS 10162 · edges to EXC2 · {part.factory}</text>
       </g>
 
       {/* ── TITLE BLOCK ── */}
@@ -202,17 +202,17 @@ export function ShopDrawing({ part, svgId }: { part: Part; svgId?: string }) {
         <line x1={474} y1={468} x2={824} y2={468} stroke="#303c54" />
         <line x1={474} y1={504} x2={824} y2={504} stroke="#303c54" />
         <line x1={649} y1={430} x2={649} y2={538} stroke="#303c54" />
-        <text x={484} y={372} fill="#eef2fb" fontSize="16" fontWeight="700">{part.id}</text>
-        <text x={484} y={386} fill="#97a3bd" fontSize="9">{part.name}</text>
-        <text x={700} y={372} fill="#8ea2ff" fontSize="11" fontWeight="600">Rev {part.rev}</text>
-        <text x={700} y={386} fill="#97a3bd" fontSize="9">1:{Math.max(2, Math.round(2 / scale))}</text>
+        <text x={484} y={372} fill="#eef2fb" fontSize="18" fontWeight="700">{part.id}</text>
+        <text x={484} y={386} fill="#97a3bd" fontSize="10.5">{part.name}</text>
+        <text x={700} y={372} fill="#8ea2ff" fontSize="13" fontWeight="600">Rev {part.rev}</text>
+        <text x={700} y={386} fill="#97a3bd" fontSize="10.5">1:{Math.max(2, Math.round(2 / scale))}</text>
         {([
           ["MATERIAL", `${part.material} ${part.grade}`],
           ["FINISH", part.finish],
         ] as const).map((r, i) => (
           <g key={i}>
-            <text x={484} y={412 + i * 38} fill="#5c6884" fontSize="8">{r[0]}</text>
-            <text x={484} y={425 + i * 38} fill="#cdd6ea" fontSize="10">{r[1]}</text>
+            <text x={484} y={412 + i * 38} fill="#5c6884" fontSize="10">{r[0]}</text>
+            <text x={484} y={425 + i * 38} fill="#cdd6ea" fontSize="11.5">{r[1]}</text>
           </g>
         ))}
         {([
@@ -220,14 +220,14 @@ export function ShopDrawing({ part, svgId }: { part: Part; svgId?: string }) {
           ["TOLERANCE", part.tolerance],
         ] as const).map((r, i) => (
           <g key={i}>
-            <text x={659} y={412 + i * 38} fill="#5c6884" fontSize="8">{r[0]}</text>
-            <text x={659} y={425 + i * 38} fill="#cdd6ea" fontSize="10">{r[1]}</text>
+            <text x={659} y={412 + i * 38} fill="#5c6884" fontSize="10">{r[0]}</text>
+            <text x={659} y={425 + i * 38} fill="#cdd6ea" fontSize="11.5">{r[1]}</text>
           </g>
         ))}
-        <text x={484} y={520} fill="#5c6884" fontSize="8">FABRICATOR</text>
-        <text x={484} y={532} fill="#cdd6ea" fontSize="9.5">{part.factory}</text>
-        <text x={659} y={520} fill="#5c6884" fontSize="8">FOR SITE</text>
-        <text x={659} y={532} fill="#cdd6ea" fontSize="9">{part.site.split("·")[0]}</text>
+        <text x={484} y={520} fill="#5c6884" fontSize="10">FABRICATOR</text>
+        <text x={484} y={532} fill="#cdd6ea" fontSize="11">{part.factory}</text>
+        <text x={659} y={520} fill="#5c6884" fontSize="10">FOR SITE</text>
+        <text x={659} y={532} fill="#cdd6ea" fontSize="10.5">{part.site.split("·")[0]}</text>
       </g>
     </svg>
   );
@@ -324,11 +324,12 @@ export default function PartsPanel({ mode }: { mode: "design" | "production" }) 
           </div>
         </div>
 
-        <div className={`grid gap-3 ${view === "split" ? "lg:grid-cols-2" : "grid-cols-1"}`}>
+        {/* stacked full-width views so the drawing stays large and legible */}
+        <div className="grid grid-cols-1 gap-3">
           {show3D && (
-            <div className="relative h-[380px] overflow-hidden rounded-xl border border-edge bg-base">
+            <div className="relative h-[400px] overflow-hidden rounded-xl border border-edge bg-base">
               <div className="pointer-events-none absolute left-3 top-2.5 z-10">
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-fg-faint">3D Model · material</div>
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-fg-faint">3D Model · complete product</div>
                 <div className="text-[11px] text-fg-muted">{part.material} {part.grade} · t{part.thk} · {part.finish}</div>
               </div>
               <span className="pointer-events-none absolute right-3 top-2.5 z-10 rounded px-1.5 py-0.5 text-[9px] font-medium text-white" style={{ background: methodColor[part.method] }}>{part.method}</span>
@@ -337,7 +338,7 @@ export default function PartsPanel({ mode }: { mode: "design" | "production" }) 
             </div>
           )}
           {show2D && (
-            <div className="blueprint relative h-[380px] overflow-hidden rounded-xl border border-edge bg-base">
+            <div className="blueprint relative aspect-[840/560] w-full overflow-hidden rounded-xl border border-edge bg-base">
               <div className="pointer-events-none absolute left-3 top-2.5 z-10 text-[10px] font-semibold uppercase tracking-widest text-fg-faint">2D Shop Drawing</div>
               <ShopDrawing part={part} svgId={svgId} />
             </div>
